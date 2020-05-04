@@ -84,22 +84,26 @@
     hitpoint 	  POINT <>
     posicao       POINT <>
     ThreadID 	  dd 0
-	ExitCode 	  dd 0
-	hThread 	  dd 0
-	hEventStart   dd 0
+    ExitCode 	  dd 0
+    hThread 	  dd 0
+    hEventStart   dd 0
 
     missilAtual   dd 0
     missilPos     POINT <>
-	
-	AppName  db "Raid River",0
 
-	EventStop BOOL FALSE
+    flagPos 	  POINT <>
+    hThreadFlag	  dd 0
+    ThreadFlagID  dd 0
+    
+    AppName  db "Raid River",0
 
+  	EventStop BOOL FALSE
 
 
 .const
 	IDM_TEST equ 1     
 	WM_FINISH equ WM_USER+100h
+  WM_FLAG   equ WM_USER+101h
 	
         
         
