@@ -7,7 +7,10 @@
     include bitblt.inc    ; local includes for this file
 
 	; código de link para imagem no arquivo RC
-	b2		         equ		111
+	aviao		     equ		101
+    helicopero       equ        103
+    bala             equ        104
+    barco            equ        102
     ;sweep            equ        11
     fundo            equ        106
     ;bala             equ        113
@@ -22,8 +25,9 @@
 start:
     invoke GetModuleHandle, NULL
     mov hInstance, eax
- 
-    invoke LoadBitmap,hInstance, b2
+    
+    
+    invoke LoadBitmap,hInstance, helicopero
     mov hBmp2, eax
 
     invoke GetCommandLine
@@ -43,6 +47,40 @@ start:
 
     ;invoke WinMain,hInstance,NULL,CommandLine,SW_SHOWDEFAULT
 
+    
+     xor eax, eax
+    invoke GetModuleHandle, NULL
+    mov hInstance2, eax
+ 
+    invoke LoadBitmap,hInstance2, aviao
+    mov hBmp, eax
+
+    invoke GetCommandLine
+    mov CommandLine, eax
+
+    ;------------------
+
+      xor eax, eax
+    invoke GetModuleHandle, NULL
+    mov hInstance4, eax
+ 
+    invoke LoadBitmap,hInstance4, barco
+    mov hBmp4, eax
+
+    invoke GetCommandLine
+    mov CommandLine, eax
+
+    ;------------------
+      xor eax, eax
+    invoke GetModuleHandle, NULL
+    mov hInstance5, eax
+ 
+    invoke LoadBitmap,hInstance5, bala
+    mov hBmp5, eax
+
+    invoke GetCommandLine
+    mov CommandLine, eax
+
     ;------------------
     xor eax, eax
     invoke GetModuleHandle, NULL
@@ -53,6 +91,8 @@ start:
 
     invoke GetCommandLine
     mov CommandLine, eax
+
+
 
     invoke WinMain,hInstance3,NULL,CommandLine,SW_SHOWDEFAULT
 
@@ -280,18 +320,33 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
     
     invoke CreateCompatibleDC,hDC
     mov memDC, eax
-
+    
+    ;------------fundo
     invoke SelectObject,memDC,hBmp3  ; selecionei o novo bitmap
-    mov hOld, eax     
-
+    mov hOld, eax    
     INVOKE  TransparentBlt,hDC,0,0,1000,1000,memDC,0,256,32,32,CREF_TRANSPARENT    
+ 
+    ;-----------aviao
+    invoke SelectObject,memDC,hBmp  ; selecionei o novo bitmap
+    mov hOld, eax     
+    INVOKE  TransparentBlt,hDC,missilPos.x,missilPos.y,32,32,memDC,0,0,40,37,CREF_TRANSPARENT 
 
+    ;----------helicoptero
     invoke SelectObject,memDC,hBmp2  ; selecionei o novo bitmap
     mov hOld, eax     
+    INVOKE  TransparentBlt,hDC,flagPos.x,flagPos.y,32,23,memDC,0,0,32,23,CREF_TRANSPARENT    
 
-    INVOKE  TransparentBlt,hDC,missilPos.x,missilPos.y,32,32,memDC,0,256,32,32,CREF_TRANSPARENT        
-    INVOKE  TransparentBlt,hDC,flagPos.x,flagPos.y,32,32,memDC,0,320,32,32,CREF_TRANSPARENT    
-  
+    ;----------barco
+    invoke SelectObject,memDC,hBmp4  ; selecionei o novo bitmap
+    mov hOld, eax     
+    INVOKE  TransparentBlt,hDC,flagPos.x,100,35,18,memDC,0,0,35,18,CREF_TRANSPARENT 
+
+    ;----------bala
+    invoke SelectObject,memDC,hBmp5  ; selecionei o novo bitmap
+    mov hOld, eax     
+    INVOKE  TransparentBlt,hDC,missilPos.x,flagPos.x,10,19,memDC,0,0,10,19,CREF_TRANSPARENT 
+
+  ;---------------------------------------
     invoke SelectObject,hDC,hOld
     invoke DeleteDC,memDC
 

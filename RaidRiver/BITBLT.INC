@@ -71,10 +71,14 @@
     hInstance     dd 0
     hInstance2     dd 0
     hInstance3    dd 0
+    hInstance4    dd 0
+    hInstance5    dd 0
     hIcon         dd 0
     hBmp          dd 0
     hBmp2         dd 0
     hBmp3         dd 0
+    hBmp4         dd 0
+    hBmp5         dd 0
 	
     memDC2        DWORD 0 
     x	 		  dd 0
