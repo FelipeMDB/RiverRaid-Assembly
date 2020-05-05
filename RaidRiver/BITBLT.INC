@@ -84,6 +84,7 @@
     x	 		  dd 0
     trasp		  dd  0
     achou		  dd  0
+    atirou    dd 0
     lRect         RECT <>
     hitpoint 	  POINT <>
     posicao       POINT <>
@@ -95,9 +96,15 @@
     missilAtual   dd 0
     missilPos     POINT <>
 
-    flagPos 	  POINT <>
-    hThreadFlag	  dd 0
-    ThreadFlagID  dd 0
+    balaPos     POINT <>
+
+    barcoPos 	  POINT <>
+    hThreadBarco	  dd 0
+    ThreadBarcoID  dd 0
+
+    heliPos 	  POINT <>
+    hThreadHeli	  dd 0
+    ThreadHeliID  dd 0
     
     AppName  db "Raid River",0
 
@@ -107,7 +114,8 @@
 .const
 	IDM_TEST equ 1     
 	WM_FINISH equ WM_USER+100h
-  WM_FLAG   equ WM_USER+101h
+  WM_BARCO   equ WM_USER+101h
+  WM_HELI   equ WM_USER+102h
 	
         
         

@@ -23,32 +23,17 @@
 .code
 
 start:
+    ;---------------------------------------------
     invoke GetModuleHandle, NULL
     mov hInstance, eax
-    
     
     invoke LoadBitmap,hInstance, helicopero
     mov hBmp2, eax
 
     invoke GetCommandLine
     mov CommandLine, eax
-
-   ; invoke WinMain,hInstance,NULL,CommandLine,SW_SHOWDEFAULT
-
-    ;--------------------
-    ;invoke GetModuleHandle, NULL
-    ;mov hInstance2, eax
- 
-    ;invoke LoadBitmap,hInstance2, sweep
-    ;mov hBmp, eax
-
-    ;invoke GetCommandLine
-    ;mov CommandLine, eax
-
-    ;invoke WinMain,hInstance,NULL,CommandLine,SW_SHOWDEFAULT
-
-    
-     xor eax, eax
+    ;----------------------------------------------
+    xor eax, eax
     invoke GetModuleHandle, NULL
     mov hInstance2, eax
  
@@ -58,9 +43,8 @@ start:
     invoke GetCommandLine
     mov CommandLine, eax
 
-    ;------------------
-
-      xor eax, eax
+    ;----------------------------------------------
+    xor eax, eax
     invoke GetModuleHandle, NULL
     mov hInstance4, eax
  
@@ -69,9 +53,8 @@ start:
 
     invoke GetCommandLine
     mov CommandLine, eax
-
-    ;------------------
-      xor eax, eax
+    ;--------------------------------------------
+    xor eax, eax
     invoke GetModuleHandle, NULL
     mov hInstance5, eax
  
@@ -80,8 +63,7 @@ start:
 
     invoke GetCommandLine
     mov CommandLine, eax
-
-    ;------------------
+    ;--------------------------------------------
     xor eax, eax
     invoke GetModuleHandle, NULL
     mov hInstance3, eax
@@ -91,13 +73,8 @@ start:
 
     invoke GetCommandLine
     mov CommandLine, eax
-
-
-
+    ;--------------------------------------------
     invoke WinMain,hInstance3,NULL,CommandLine,SW_SHOWDEFAULT
-
-    ;------------------
-
     invoke ExitProcess,eax
 
 ; #########################################################################
@@ -210,8 +187,11 @@ WndProc proc hWin   :DWORD,
 		mov missilPos.y, 400
 		mov missilPos.x, 100
 
-        mov flagPos.y, 80
-		mov flagPos.x, 100
+        mov barcoPos.y, 80
+		mov barcoPos.x, 100
+
+        mov heliPos.y, 300
+		mov heliPos.x, 10
 		
 		invoke CreateEvent,NULL,FALSE,FALSE,NULL
 		mov    hEventStart,eax
@@ -222,11 +202,17 @@ WndProc proc hWin   :DWORD,
 		                    ADDR ThreadID
 		mov    hThread,eax
 
-		mov    eax,OFFSET ThreadFlagProc
+		mov    eax,OFFSET ThreadBarcoProc
 		invoke CreateThread,NULL,NULL,eax,\
 		                    NULL,NORMAL_PRIORITY_CLASS,\
-		                    ADDR ThreadFlagID
-		mov    hThreadFlag,eax
+		                    ADDR ThreadBarcoID
+		mov    hThreadBarco,eax
+
+        mov    eax,OFFSET ThreadHeliProc
+		invoke CreateThread,NULL,NULL,eax,\
+		                    NULL,NORMAL_PRIORITY_CLASS,\
+		                    ADDR ThreadHeliID
+		mov    hThreadHeli,eax
 
 		
     .elseif uMsg == WM_SIZE
@@ -249,6 +235,13 @@ WndProc proc hWin   :DWORD,
             
         .elseif wParam == VK_LEFT
             sub missilPos.x, 20
+
+        .elseif wParam == VK_UP
+            mov ecx, missilPos.x
+            mov balaPos.x, ecx
+            mov ebx, missilPos.y
+            mov balaPos.y, ebx
+            mov atirou, 1
         .endif
 		
     .elseif uMsg == WM_PAINT
@@ -260,23 +253,50 @@ WndProc proc hWin   :DWORD,
 
    	    
    .elseif uMsg==WM_FINISH
+        .if atirou == 1
+            sub balaPos.y, 1
+        .endif
 
-		;sub missilPos.y, 1                  ;comando q muda y
-		
 		.if missilPos.y <= 0                              ;aviao
 			mov missilPos.y,100
 			mov missilPos.x,100
 		.endif 
 		invoke InvalidateRect,hWnd,NULL,TRUE	
 
-    .elseif uMsg==WM_FLAG                                              ;aqui
+    .elseif uMsg==WM_BARCO 
 
-        inc flagPos.x
+        ;.if barcoPos.x + 2 <= balaPos.x
+        ;    .if barcoPos.x - 2 >= balaPos.x
+            ;    .if barcoPos.y + 2 <= balaPos.y
+            ;        .if barcoPos.y - 2 >= balaPos.y
+            ;           mov achou, 1
+            ;        .endif
+            ;     .endif
+            ; .endif           
+        ;.endif                                           
+
+        inc barcoPos.x
         
-        .if flagPos.x > 800
-            mov flagPos.y,80
-            mov flagPos.x,0
+        .if barcoPos.x > 800
+            mov barcoPos.y,80
+            mov barcoPos.x,0
         .endif 
+
+    .elseif uMsg==WM_HELI
+
+        ;.if heliPos.x == balaPos.x
+        ;    .if heliPos.y == balaPos.y
+        ;        mov achou, 1
+        ;    .endif
+        ;.endif
+
+        inc heliPos.x
+
+        .if heliPos.x > 800
+            mov heliPos.y,80
+            mov heliPos.x,0
+        .endif 
+
 ;		invoke InvalidateRect,hWnd,NULL,TRUE
 
     .elseif uMsg == WM_CLOSE
@@ -334,17 +354,23 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
     ;----------helicoptero
     invoke SelectObject,memDC,hBmp2  ; selecionei o novo bitmap
     mov hOld, eax     
-    INVOKE  TransparentBlt,hDC,flagPos.x,flagPos.y,32,23,memDC,0,0,32,23,CREF_TRANSPARENT    
+    INVOKE  TransparentBlt,hDC,heliPos.x,heliPos.y,32,23,memDC,0,0,32,23,CREF_TRANSPARENT    
 
     ;----------barco
     invoke SelectObject,memDC,hBmp4  ; selecionei o novo bitmap
     mov hOld, eax     
-    INVOKE  TransparentBlt,hDC,flagPos.x,100,35,18,memDC,0,0,35,18,CREF_TRANSPARENT 
+    INVOKE  TransparentBlt,hDC,barcoPos.x,100,35,18,memDC,0,0,35,18,CREF_TRANSPARENT 
 
     ;----------bala
-    invoke SelectObject,memDC,hBmp5  ; selecionei o novo bitmap
-    mov hOld, eax     
-    INVOKE  TransparentBlt,hDC,missilPos.x,flagPos.x,10,19,memDC,0,0,10,19,CREF_TRANSPARENT 
+    .if atirou == 1 
+        .if balaPos.y <= 0
+            mov atirou,0
+        .elseif   
+            invoke SelectObject,memDC,hBmp5  ; selecionei o novo bitmap
+            mov hOld, eax     
+            INVOKE  TransparentBlt,hDC,balaPos.x,balaPos.y,10,19,memDC,0,0,10,19,CREF_TRANSPARENT 
+        .endif
+    .endif
 
   ;---------------------------------------
     invoke SelectObject,hDC,hOld
@@ -354,13 +380,12 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
 
 Paint_Proc endp
 
-
 ; ########################################################################
 
 
 ThreadProc PROC USES ecx Param:DWORD
 
-    invoke WaitForSingleObject,hEventStart,20 ;INFINITE
+    invoke WaitForSingleObject,hEventStart,2 ;INFINITE
 
 	.IF eax == WAIT_TIMEOUT	
 	    invoke PostMessage,hWnd,WM_FINISH,NULL,NULL
@@ -375,18 +400,32 @@ ThreadProc PROC USES ecx Param:DWORD
     ret
 ThreadProc ENDP
 
-ThreadFlagProc PROC USES ecx Param:DWORD                       ;aqui
+ThreadBarcoProc PROC USES ecx Param:DWORD                       ;aqui
 
     invoke WaitForSingleObject,hEventStart,10 ;INFINITE
 
 	.IF eax == WAIT_TIMEOUT	
-	    invoke PostMessage,hWnd,WM_FLAG,NULL,NULL
-	    jmp   ThreadFlagProc     
+	    invoke PostMessage,hWnd,WM_BARCO,NULL,NULL
+	    jmp   ThreadBarcoProc     
     .ENDIF
         
-    jmp   ThreadFlagProc
+    jmp   ThreadBarcoProc
         
     ret
-ThreadFlagProc ENDP
+ThreadBarcoProc ENDP
+
+ThreadHeliProc PROC USES ecx Param:DWORD                       ;aqui
+
+    invoke WaitForSingleObject,hEventStart,10 ;INFINITE
+
+	.IF eax == WAIT_TIMEOUT	
+	    invoke PostMessage,hWnd,WM_HELI,NULL,NULL
+	    jmp   ThreadHeliProc     
+    .ENDIF
+        
+    jmp   ThreadHeliProc
+        
+    ret
+ThreadHeliProc ENDP
 
 end start
