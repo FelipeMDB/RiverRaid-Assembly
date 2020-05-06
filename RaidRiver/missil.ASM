@@ -399,41 +399,56 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
   ;verifica se acertou
   ; 1 - achou, 2 - não achou e falta verificar barco, 3- não acertou
 
-  verificaTodos:
-    .if achou == 1 ;achou um helicoptero
-        ;acabou
-    .elseif 
-        .if achou == 2
-            jmp testaB
-        .elseif ;achou == 3
-            jmp fim
-        .endif
-    .endif    
+  ;verificaTodos:
+    ;.if achou == 0   ;se deve procurar no heli
+    ;   jmp testaH
+    ;.elseif
+    ;    .if achou == 1 ;achou um helicoptero
+            ;achou heli
+    ;    .elseif 
+    ;        .if achou == 2 ;se deve procurar no barco
+    ;            jmp testaB
+    ;        .elseif achou == 3  ;achou um barco
+                ;achou barco
+    ;        .endif
+    ;    .endif  
+    ;.endif  
 
-    testaH:
-        mov ebx, heliPos.x
-        mov ecx, heliPos.y
+    ;testaH:    
+    ;    mov ebx, heliPos.x
+    ;    mov ecx, heliPos.y
         ;add ebx, 2
         ;add ecx, 2
-        jmp verificaSeAcertou
+    ;    jmp verificaSeAcertou
+    ;    .if achou == 0
+    ;        mov achou, 2
+    ;    .endif
+    ;    jmp verificaTodos
 
-    verificaSeAcertou:
-            .if ebx <= balaPos.x 
-                .if ebx >= balaPos.x
-                    .if ecx <= balaPos.y
-                        .if ecx >= balaPos.y
-                            mov achou, 1
-                        .endif
-                    .endif
-                .endif           
-            .endif
-            jmp verificaTodos
-    testaB:  
-        mov ebx, barcoPos.x
-        mov ecx, barcoPos.y
-        jmp verificaTodos
+    ;verificaSeAcertou:
+    ;        .if ebx <= balaPos.x 
+    ;            .if ebx >= balaPos.x
+    ;                .if ecx <= balaPos.y
+    ;                    .if ecx >= balaPos.y
+    ;                        mov achou, 1
+    ;                    .elseif
+    ;                    .endif
+    ;                .endif
+    ;            .endif           
+    ;        .endif
+    ;        jmp verificaTodos
+    ;testaB:  
+    ;    mov ebx, barcoPos.x
+    ;    mov ecx, barcoPos.y
+    ;    jmp verificaTodos
+    ;    .if achou == 1
+    ;        mov achou, 3
+    ;    .elseif
+    ;        jmp fim
+    ;    .endif
+    ;    jmp verificaTodos
 
-  fim:
+  ;fim:
     invoke SelectObject,hDC,hOld
     invoke DeleteDC,memDC
 
