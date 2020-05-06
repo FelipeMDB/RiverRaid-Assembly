@@ -73,20 +73,25 @@
     hInstance3    dd 0
     hInstance4    dd 0
     hInstance5    dd 0
+    hInstance6    dd 0
+    hInstance7    dd 0
     hIcon         dd 0
     hBmp          dd 0
     hBmp2         dd 0
     hBmp3         dd 0
     hBmp4         dd 0
     hBmp5         dd 0
+    hBmp6         dd 0
+    hBmp7         dd 0
 	
     memDC2        DWORD 0 
     x	 		  dd 0
     trasp		  dd  0
     achou		  dd  0
     atirou    dd 0
+    perdeu    dd 0
     lRect         RECT <>
-    hitpoint 	  POINT <>
+    hitpoint 	    POINT <>
     posicao       POINT <>
     ThreadID 	  dd 0
     ExitCode 	  dd 0
@@ -107,12 +112,17 @@
     ThreadHeliID  dd 0
     
     AppName  db "Raid River",0
-
+    SuccessString db "Você perdeu!Deseja jogar novamente?",0
   	EventStop BOOL FALSE
 
+.data? 
+;hInstance HINSTANCE ? 
+;CommandLine LPSTR ? 
+hwnd HANDLE ? 
+;ThreadID DWORD ?
 
 .const
-	IDM_TEST equ 1     
+	IDM_EXIT equ 1     
 	WM_FINISH equ WM_USER+100h
   WM_BARCO   equ WM_USER+101h
   WM_HELI   equ WM_USER+102h

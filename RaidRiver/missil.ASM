@@ -11,9 +11,9 @@
     helicopero       equ        103
     bala             equ        104
     barco            equ        102
-    ;sweep            equ        11
     fundo            equ        106
-    ;bala             equ        113
+    ;terraE           equ        105
+    ;fuel             equ        107
 
 	CREF_TRANSPARENT  EQU 0FF00FFh
 	CREF_TRANSPARENT2 EQU 0FF0000h
@@ -53,6 +53,26 @@ start:
 
     invoke GetCommandLine
     mov CommandLine, eax
+    ;--------------------------------------------
+    ;xor eax, eax
+    ;invoke GetModuleHandle, NULL            ;aqui
+    ;mov hInstance6, eax
+ 
+    ;invoke LoadBitmap,hInstance6, terraE
+    ;mov hBmp6, eax
+
+    ;invoke GetCommandLine
+    ;mov CommandLine, eax
+    ;--------------------------------------------
+    ;xor eax, eax
+    ;invoke GetModuleHandle, NULL           
+    ;mov hInstance7, eax
+ 
+    ;invoke LoadBitmap,hInstance7, fuel
+    ;mov hBmp7, eax
+
+    ;invoke GetCommandLine
+    ;mov CommandLine, eax
     ;--------------------------------------------
     xor eax, eax
     invoke GetModuleHandle, NULL
@@ -263,17 +283,7 @@ WndProc proc hWin   :DWORD,
 		.endif 
 		invoke InvalidateRect,hWnd,NULL,TRUE	
 
-    .elseif uMsg==WM_BARCO 
-
-        ;.if barcoPos.x + 2 <= balaPos.x
-        ;    .if barcoPos.x - 2 >= balaPos.x
-            ;    .if barcoPos.y + 2 <= balaPos.y
-            ;        .if barcoPos.y - 2 >= balaPos.y
-            ;           mov achou, 1
-            ;        .endif
-            ;     .endif
-            ; .endif           
-        ;.endif                                           
+    .elseif uMsg==WM_BARCO                               
 
         inc barcoPos.x
         
@@ -283,13 +293,6 @@ WndProc proc hWin   :DWORD,
         .endif 
 
     .elseif uMsg==WM_HELI
-
-        ;.if heliPos.x == balaPos.x
-        ;    .if heliPos.y == balaPos.y
-        ;        mov achou, 1
-        ;    .endif
-        ;.endif
-
         inc heliPos.x
 
         .if heliPos.x > 800
@@ -373,6 +376,64 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
     .endif
 
   ;---------------------------------------
+  ;verifica se o usuário perdeu o jogo
+  mov ebx, barcoPos.x          ;melhorar lógica disso dps
+  mov ecx,  barcoPos.y
+  .if missilPos.x == ebx
+    .if missilPos.y == ecx
+        mov perdeu, 1
+    .endif
+  .endif 
+  mov ebx, heliPos.x
+  mov ecx, heliPos.y
+  .if missilPos.x == ebx
+    .if missilPos.y == ecx
+        mov perdeu, 1
+    .endif
+  .endif 
+
+  .if perdeu == 1
+    invoke MessageBox,NULL,ADDR SuccessString,ADDR AppName,MB_OK 
+  .endif
+
+  ;verifica se acertou
+  ; 1 - achou, 2 - não achou e falta verificar barco, 3- não acertou
+
+  verificaTodos:
+    .if achou == 1 ;achou um helicoptero
+        ;acabou
+    .elseif 
+        .if achou == 2
+            jmp testaB
+        .elseif ;achou == 3
+            jmp fim
+        .endif
+    .endif    
+
+    testaH:
+        mov ebx, heliPos.x
+        mov ecx, heliPos.y
+        ;add ebx, 2
+        ;add ecx, 2
+        jmp verificaSeAcertou
+
+    verificaSeAcertou:
+            .if ebx <= balaPos.x 
+                .if ebx >= balaPos.x
+                    .if ecx <= balaPos.y
+                        .if ecx >= balaPos.y
+                            mov achou, 1
+                        .endif
+                    .endif
+                .endif           
+            .endif
+            jmp verificaTodos
+    testaB:  
+        mov ebx, barcoPos.x
+        mov ecx, barcoPos.y
+        jmp verificaTodos
+
+  fim:
     invoke SelectObject,hDC,hOld
     invoke DeleteDC,memDC
 
@@ -400,7 +461,7 @@ ThreadProc PROC USES ecx Param:DWORD
     ret
 ThreadProc ENDP
 
-ThreadBarcoProc PROC USES ecx Param:DWORD                       ;aqui
+ThreadBarcoProc PROC USES ecx Param:DWORD                      
 
     invoke WaitForSingleObject,hEventStart,10 ;INFINITE
 
@@ -414,7 +475,7 @@ ThreadBarcoProc PROC USES ecx Param:DWORD                       ;aqui
     ret
 ThreadBarcoProc ENDP
 
-ThreadHeliProc PROC USES ecx Param:DWORD                       ;aqui
+ThreadHeliProc PROC USES ecx Param:DWORD                      
 
     invoke WaitForSingleObject,hEventStart,10 ;INFINITE
 
