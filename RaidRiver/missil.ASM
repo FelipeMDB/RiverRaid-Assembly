@@ -13,7 +13,7 @@
     barco            equ        102
     fundo            equ        106
     ;terraE           equ        105
-    ;fuel             equ        107
+    fuel             equ        105
 
 	CREF_TRANSPARENT  EQU 0FF00FFh
 	CREF_TRANSPARENT2 EQU 0FF0000h
@@ -64,15 +64,15 @@ start:
     ;invoke GetCommandLine
     ;mov CommandLine, eax
     ;--------------------------------------------
-    ;xor eax, eax
-    ;invoke GetModuleHandle, NULL           
-    ;mov hInstance7, eax
+    xor eax, eax
+    invoke GetModuleHandle, NULL           
+    mov hInstance7, eax
  
-    ;invoke LoadBitmap,hInstance7, fuel
-    ;mov hBmp7, eax
+    invoke LoadBitmap,hInstance7, fuel
+    mov hBmp7, eax
 
-    ;invoke GetCommandLine
-    ;mov CommandLine, eax
+    invoke GetCommandLine
+    mov CommandLine, eax
     ;--------------------------------------------
     xor eax, eax
     invoke GetModuleHandle, NULL
@@ -212,6 +212,9 @@ WndProc proc hWin   :DWORD,
 
         mov heliPos.y, 300
 		mov heliPos.x, 10
+
+        mov fuelPos.y, 0
+        mov fuelPos.x, 50
 		
 		invoke CreateEvent,NULL,FALSE,FALSE,NULL
 		mov    hEventStart,eax
@@ -233,6 +236,12 @@ WndProc proc hWin   :DWORD,
 		                    NULL,NORMAL_PRIORITY_CLASS,\
 		                    ADDR ThreadHeliID
 		mov    hThreadHeli,eax
+
+        mov    eax,OFFSET ThreadDownProc
+		invoke CreateThread,NULL,NULL,eax,\
+		                    NULL,NORMAL_PRIORITY_CLASS,\
+		                    ADDR ThreadDownID
+		mov    hThreadDown,eax
 
 		
     .elseif uMsg == WM_SIZE
@@ -288,17 +297,36 @@ WndProc proc hWin   :DWORD,
         inc barcoPos.x
         
         .if barcoPos.x > 800
-            mov barcoPos.y,80
             mov barcoPos.x,0
         .endif 
+
+       
 
     .elseif uMsg==WM_HELI
         inc heliPos.x
 
         .if heliPos.x > 800
-            mov heliPos.y,80
             mov heliPos.x,0
+        .endif
+
+     .elseif uMsg==WM_DOWN                              
+
+        inc heliPos.y
+        inc barcoPos.y 
+        inc fuelPos.y
+        
+        .if barcoPos.y > 500
+            mov barcoPos.y,0
         .endif 
+
+        .if heliPos.y > 500
+            mov heliPos.y, 0
+        .endif
+        
+        .if fuelPos.y > 500
+            mov fuelPos.y, 0
+        .endif
+       
 
 ;		invoke InvalidateRect,hWnd,NULL,TRUE
 
@@ -362,7 +390,7 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
     ;----------barco
     invoke SelectObject,memDC,hBmp4  ; selecionei o novo bitmap
     mov hOld, eax     
-    INVOKE  TransparentBlt,hDC,barcoPos.x,100,35,18,memDC,0,0,35,18,CREF_TRANSPARENT 
+    INVOKE  TransparentBlt,hDC,barcoPos.x,barcoPos.y,35,18,memDC,0,0,35,18,CREF_TRANSPARENT 
 
     ;----------bala
     .if atirou == 1 
@@ -374,6 +402,11 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
             INVOKE  TransparentBlt,hDC,balaPos.x,balaPos.y,10,19,memDC,0,0,10,19,CREF_TRANSPARENT 
         .endif
     .endif
+
+    ;----------fuel
+    invoke SelectObject,memDC,hBmp7  ; selecionei o novo bitmap
+    mov hOld, eax     
+    INVOKE  TransparentBlt,hDC,fuelPos.x,fuelPos.y,28,55,memDC,0,0,28,55,CREF_TRANSPARENT 
 
   ;---------------------------------------
   ;verifica se o usuário perdeu o jogo
@@ -503,5 +536,19 @@ ThreadHeliProc PROC USES ecx Param:DWORD
         
     ret
 ThreadHeliProc ENDP
+
+ThreadDownProc PROC USES ecx Param:DWORD                      
+
+    invoke WaitForSingleObject,hEventStart,100 ;INFINITE
+
+	.IF eax == WAIT_TIMEOUT	
+	    invoke PostMessage,hWnd,WM_DOWN,NULL,NULL
+	    jmp   ThreadDownProc     
+    .ENDIF
+        
+    jmp   ThreadDownProc
+        
+    ret
+ThreadDownProc ENDP
 
 end start

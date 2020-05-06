@@ -102,8 +102,11 @@
     missilPos     POINT <>
 
     balaPos     POINT <>
-
     barcoPos 	  POINT <>
+    fuelPos     POINT <>
+    hThreadDown 	 dd 0
+    ThreadDownID  dd 0
+
     hThreadBarco	  dd 0
     ThreadBarcoID  dd 0
 
@@ -126,6 +129,7 @@ hwnd HANDLE ?
 	WM_FINISH equ WM_USER+100h
   WM_BARCO   equ WM_USER+101h
   WM_HELI   equ WM_USER+102h
+  WM_DOWN   equ WM_USER+103h
 	
         
         
