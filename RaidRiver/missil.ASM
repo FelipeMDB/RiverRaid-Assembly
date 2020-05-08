@@ -433,55 +433,42 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
   ; 1 - achou, 2 - não achou e falta verificar barco, 3- não acertou
 
   ;verificaTodos:
-    ;.if achou == 0   ;se deve procurar no heli
-    ;   jmp testaH
-    ;.elseif
-    ;    .if achou == 1 ;achou um helicoptero
-            ;achou heli
-    ;    .elseif 
-    ;        .if achou == 2 ;se deve procurar no barco
-    ;            jmp testaB
-    ;        .elseif achou == 3  ;achou um barco
-                ;achou barco
-    ;        .endif
-    ;    .endif  
-    ;.endif  
+    xor edx, edx
+    xor ebx, ebx
+    xor ecx, ecx
+    xor eax, eax
 
-    ;testaH:    
-    ;    mov ebx, heliPos.x
-    ;    mov ecx, heliPos.y
-        ;add ebx, 2
-        ;add ecx, 2
-    ;    jmp verificaSeAcertou
-    ;    .if achou == 0
-    ;        mov achou, 2
-    ;    .endif
-    ;    jmp verificaTodos
+    mov edx, balaPos.x
+    mov ebx, heliPos.x
+    sub edx, ebx
 
-    ;verificaSeAcertou:
-    ;        .if ebx <= balaPos.x 
-    ;            .if ebx >= balaPos.x
-    ;                .if ecx <= balaPos.y
-    ;                    .if ecx >= balaPos.y
-    ;                        mov achou, 1
-    ;                    .elseif
-    ;                    .endif
-    ;                .endif
-    ;            .endif           
-    ;        .endif
-    ;        jmp verificaTodos
-    ;testaB:  
-    ;    mov ebx, barcoPos.x
-    ;    mov ecx, barcoPos.y
-    ;    jmp verificaTodos
-    ;    .if achou == 1
-    ;        mov achou, 3
-    ;    .elseif
-    ;        jmp fim
-    ;    .endif
-    ;    jmp verificaTodos
+    mov eax, balaPos.y
+    mov ecx, heliPos.y  
+    sub eax, ecx
 
-  ;fim:
+    .if edx <= 2
+        .if eax <= 2
+            invoke MessageBox,NULL,ADDR SuccessString,ADDR AppName,MB_OK
+            mov achou, 1
+        .endif         
+    .endif
+
+    .if achou == 1
+        ;invoke MessageBox,NULL,ADDR SuccessString,ADDR AppName,MB_OK
+        mov achou, 0
+        ;----------helicoptero
+        invoke SelectObject,memDC,hBmp2  ; selecionei o novo bitmap
+        mov hOld, eax   
+        mov heliPos.x, 0  
+        INVOKE  TransparentBlt,hDC,heliPos.x,heliPos.y,32,23,memDC,0,0,32,23,CREF_TRANSPARENT    
+    .endif
+
+    xor edx, edx
+    xor ebx, ebx
+    xor ecx, ecx
+    xor eax, eax
+
+
     invoke SelectObject,hDC,hOld
     invoke DeleteDC,memDC
 
