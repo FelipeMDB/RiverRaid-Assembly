@@ -24,6 +24,7 @@
 
 start:
     ;---------------------------------------------
+
     invoke GetModuleHandle, NULL
     mov hInstance, eax
     
@@ -93,6 +94,7 @@ start:
 
     invoke GetCommandLine
     mov CommandLine, eax
+   
     ;--------------------------------------------
     invoke WinMain,hInstance3,NULL,CommandLine,SW_SHOWDEFAULT
     invoke ExitProcess,eax
@@ -130,7 +132,7 @@ WinMain proc hInst     :DWORD,
     mov wc.cbClsExtra,     NULL
     mov wc.cbWndExtra,     NULL
     m2m wc.hInstance,      hInst
-    mov wc.hbrBackground,  10h
+    mov wc.hbrBackground,  0EH    
     mov wc.lpszMenuName,   NULL   ;OFFSET MenuName
     mov wc.lpszClassName,  offset szClassName
     m2m wc.hIcon,          hIcon
@@ -245,7 +247,7 @@ WndProc proc hWin   :DWORD,
 
 		
     .elseif uMsg == WM_SIZE
-;    // obter o tamanho da janela
+ ;    // obter o tamanho da janela
     
     .elseif uMsg == WM_LBUTTONDOWN
 		mov eax,lParam
@@ -328,7 +330,7 @@ WndProc proc hWin   :DWORD,
         .endif
        
 
-;		invoke InvalidateRect,hWnd,NULL,TRUE
+ ;		invoke InvalidateRect,hWnd,NULL,TRUE
 
     .elseif uMsg == WM_CLOSE
         szText TheText,"Tem certeza que deseja sair?"
@@ -368,18 +370,22 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
     LOCAL hOld:DWORD
     LOCAL memDC :DWORD
  
-    
     invoke CreateCompatibleDC,hDC
     mov memDC, eax
     
     ;------------fundo
-    invoke SelectObject,memDC,hBmp3  ; selecionei o novo bitmap
-    mov hOld, eax    
-    INVOKE  TransparentBlt,hDC,0,0,1000,1000,memDC,0,256,32,32,CREF_TRANSPARENT    
+    ;invoke SelectObject,memDC,hBmp3  ; selecionei o novo bitmap
+    ;mov hOld, eax    
+    ;INVOKE  TransparentBlt,hDC,0,0,1000,1000,memDC,0,256,32,32,CREF_TRANSPARENT    
  
+    ;----------fuel
+    invoke SelectObject,memDC,hBmp7  ; selecionei o novo bitmap
+    mov hOld, eax     
+    INVOKE  TransparentBlt,hDC,fuelPos.x,fuelPos.y,28,55,memDC,0,0,28,55,CREF_TRANSPARENT 
+
     ;-----------aviao
     invoke SelectObject,memDC,hBmp  ; selecionei o novo bitmap
-    mov hOld, eax     
+    mov hOld, eax                                                 
     INVOKE  TransparentBlt,hDC,missilPos.x,missilPos.y,32,32,memDC,0,0,40,37,CREF_TRANSPARENT 
 
     ;----------helicoptero
@@ -403,58 +409,50 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
         .endif
     .endif
 
-    ;----------fuel
-    invoke SelectObject,memDC,hBmp7  ; selecionei o novo bitmap
-    mov hOld, eax     
-    INVOKE  TransparentBlt,hDC,fuelPos.x,fuelPos.y,28,55,memDC,0,0,28,55,CREF_TRANSPARENT 
-
   ;---------------------------------------
   ;verifica se o usuário perdeu o jogo
-  mov ebx, barcoPos.x          ;melhorar lógica disso dps
-  mov ecx,  barcoPos.y
-  .if missilPos.x == ebx
-    .if missilPos.y == ecx
-        mov perdeu, 1
-    .endif
-  .endif 
-  mov ebx, heliPos.x
-  mov ecx, heliPos.y
-  .if missilPos.x == ebx
-    .if missilPos.y == ecx
-        mov perdeu, 1
-    .endif
-  .endif 
+  ;mov ebx, barcoPos.x          ;melhorar lógica disso dps
+  ;mov ecx,  barcoPos.y
+  ;.if missilPos.x == ebx
+    ;.if missilPos.y == ecx
+    ;    mov perdeu, 1
+    ;.endif
+  ;.endif 
+  ;mov ebx, heliPos.x
+  ;mov ecx, heliPos.y
+  ;.if missilPos.x == ebx
+  ;  .if missilPos.y == ecx
+  ;      mov perdeu, 1
+  ;  .endif
+  ;.endif 
 
-  .if perdeu == 1
-    invoke MessageBox,NULL,ADDR SuccessString,ADDR AppName,MB_OK 
-  .endif
+  ;.if perdeu == 1
+    ;invoke MessageBox,NULL,ADDR SuccessString,ADDR AppName,MB_OK 
+  ;.endif
 
   ;verifica se acertou
-  ; 1 - achou, 2 - não achou e falta verificar barco, 3- não acertou
-
   ;verificaTodos:
-    xor edx, edx
-    xor ebx, ebx
-    xor ecx, ecx
-    xor eax, eax
-
+    push ebx
+    push ecx
+    push edx
+    
     mov edx, balaPos.x
     mov ebx, heliPos.x
     sub edx, ebx
 
-    mov eax, balaPos.y
-    mov ecx, heliPos.y  
-    sub eax, ecx
-
-    .if edx <= 2
-        .if eax <= 2
-            invoke MessageBox,NULL,ADDR SuccessString,ADDR AppName,MB_OK
+    .if edx <= 10
+        xor edx, edx
+        mov ecx, balaPos.y
+        mov edx, heliPos.y  
+        sub ecx, edx
+        .if ecx <= 10
             mov achou, 1
+            invoke MessageBox,NULL,ADDR SuccessString,ADDR AppName,MB_OK
         .endif         
     .endif
 
     .if achou == 1
-        ;invoke MessageBox,NULL,ADDR SuccessString,ADDR AppName,MB_OK
+        invoke MessageBox,NULL,ADDR SuccessString,ADDR AppName,MB_OK
         mov achou, 0
         ;----------helicoptero
         invoke SelectObject,memDC,hBmp2  ; selecionei o novo bitmap
@@ -463,11 +461,9 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
         INVOKE  TransparentBlt,hDC,heliPos.x,heliPos.y,32,23,memDC,0,0,32,23,CREF_TRANSPARENT    
     .endif
 
-    xor edx, edx
-    xor ebx, ebx
-    xor ecx, ecx
-    xor eax, eax
-
+    pop edx
+    pop ecx
+    pop ebx
 
     invoke SelectObject,hDC,hOld
     invoke DeleteDC,memDC
@@ -481,7 +477,7 @@ Paint_Proc endp
 
 ThreadProc PROC USES ecx Param:DWORD
 
-    invoke WaitForSingleObject,hEventStart,2 ;INFINITE
+    invoke WaitForSingleObject,hEventStart,1 ;INFINITE
 
 	.IF eax == WAIT_TIMEOUT	
 	    invoke PostMessage,hWnd,WM_FINISH,NULL,NULL
