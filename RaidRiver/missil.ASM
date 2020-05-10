@@ -439,20 +439,21 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
     mov edx, balaPos.x
     mov ebx, heliPos.x
     sub edx, ebx
+    xor ebx, ebx
 
-    .if edx <= 10
-        xor edx, edx
+    .if edx <= 3
         mov ecx, balaPos.y
-        mov edx, heliPos.y  
-        sub ecx, edx
-        .if ecx <= 10
-            mov achou, 1
+        mov ebx, heliPos.y  
+        sub ebx, ecx
+        .if ebx <= 3
             invoke MessageBox,NULL,ADDR SuccessString,ADDR AppName,MB_OK
+            mov achou, 1
+            ;invoke MessageBox,NULL,ADDR SuccessString,ADDR AppName,MB_OK
         .endif         
     .endif
 
     .if achou == 1
-        invoke MessageBox,NULL,ADDR SuccessString,ADDR AppName,MB_OK
+        ;invoke MessageBox,NULL,ADDR SuccessString,ADDR AppName,MB_OK
         mov achou, 0
         ;----------helicoptero
         invoke SelectObject,memDC,hBmp2  ; selecionei o novo bitmap
