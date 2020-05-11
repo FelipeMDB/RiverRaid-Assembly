@@ -12,8 +12,8 @@
     bala             equ        104
     barco            equ        102
     fundo            equ        106
-    ;terraE           equ        105
     fuel             equ        105
+    placar           equ        107
 
 	CREF_TRANSPARENT  EQU 0FF00FFh
 	CREF_TRANSPARENT2 EQU 0FF0000h
@@ -24,7 +24,6 @@
 
 start:
     ;---------------------------------------------
-
     invoke GetModuleHandle, NULL
     mov hInstance, eax
     
@@ -87,6 +86,16 @@ start:
     ;--------------------------------------------
     xor eax, eax
     invoke GetModuleHandle, NULL
+    mov hInstance8, eax
+ 
+    invoke LoadBitmap,hInstance8, placar
+    mov hBmp8, eax
+
+    invoke GetCommandLine
+    mov CommandLine, eax
+    ;--------------------------------------------
+    xor eax, eax
+    invoke GetModuleHandle, NULL
     mov hInstance3, eax
  
     invoke LoadBitmap,hInstance3, fundo
@@ -94,7 +103,6 @@ start:
 
     invoke GetCommandLine
     mov CommandLine, eax
-   
     ;--------------------------------------------
     invoke WinMain,hInstance3,NULL,CommandLine,SW_SHOWDEFAULT
     invoke ExitProcess,eax
@@ -132,7 +140,7 @@ WinMain proc hInst     :DWORD,
     mov wc.cbClsExtra,     NULL
     mov wc.cbWndExtra,     NULL
     m2m wc.hInstance,      hInst
-    mov wc.hbrBackground,  0EH    
+    mov wc.hbrBackground, 0EH
     mov wc.lpszMenuName,   NULL   ;OFFSET MenuName
     mov wc.lpszClassName,  offset szClassName
     m2m wc.hIcon,          hIcon
@@ -206,8 +214,8 @@ WndProc proc hWin   :DWORD,
 		 
     .elseif uMsg == WM_CREATE                                         ;instancia posições
 		mov	missilAtual, 0
-		mov missilPos.y, 400
-		mov missilPos.x, 100
+		mov missilPos.y, 320
+		mov missilPos.x, 370
 
         mov barcoPos.y, 80
 		mov barcoPos.x, 100
@@ -247,7 +255,7 @@ WndProc proc hWin   :DWORD,
 
 		
     .elseif uMsg == WM_SIZE
- ;    // obter o tamanho da janela
+;    // obter o tamanho da janela
     
     .elseif uMsg == WM_LBUTTONDOWN
 		mov eax,lParam
@@ -269,6 +277,7 @@ WndProc proc hWin   :DWORD,
 
         .elseif wParam == VK_UP
             mov ecx, missilPos.x
+            add ecx, 13
             mov balaPos.x, ecx
             mov ebx, missilPos.y
             mov balaPos.y, ebx
@@ -317,20 +326,20 @@ WndProc proc hWin   :DWORD,
         inc barcoPos.y 
         inc fuelPos.y
         
-        .if barcoPos.y > 500
+        .if barcoPos.y > 365
             mov barcoPos.y,0
         .endif 
 
-        .if heliPos.y > 500
+        .if heliPos.y > 365
             mov heliPos.y, 0
         .endif
         
-        .if fuelPos.y > 500
+        .if fuelPos.y > 365
             mov fuelPos.y, 0
         .endif
        
 
- ;		invoke InvalidateRect,hWnd,NULL,TRUE
+;		invoke InvalidateRect,hWnd,NULL,TRUE
 
     .elseif uMsg == WM_CLOSE
         szText TheText,"Tem certeza que deseja sair?"
@@ -370,15 +379,20 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
     LOCAL hOld:DWORD
     LOCAL memDC :DWORD
  
+    
     invoke CreateCompatibleDC,hDC
     mov memDC, eax
     
-    ;------------fundo
-    ;invoke SelectObject,memDC,hBmp3  ; selecionei o novo bitmap
-    ;mov hOld, eax    
-    ;INVOKE  TransparentBlt,hDC,0,0,1000,1000,memDC,0,256,32,32,CREF_TRANSPARENT    
- 
-    ;----------fuel
+    ; ;------------fundo
+    ; mov ecx, exibiu
+
+    ; .if ecx != 1
+    ;     invoke SelectObject,memDC,hBmp3  ; selecionei o novo bitmap
+    ;     mov hOld, eax    
+    ;     INVOKE  TransparentBlt,hDC,0,0,1000,1000,memDC,0,256,32,32,CREF_TRANSPARENT 
+    ;     mov exibiu, 1 
+    ; .endif
+  ;----------fuel
     invoke SelectObject,memDC,hBmp7  ; selecionei o novo bitmap
     mov hOld, eax     
     INVOKE  TransparentBlt,hDC,fuelPos.x,fuelPos.y,28,55,memDC,0,0,28,55,CREF_TRANSPARENT 
@@ -409,30 +423,33 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
         .endif
     .endif
 
+    ;----------placar
+    invoke SelectObject,memDC,hBmp8  ; selecionei o novo bitmap
+    mov hOld, eax     
+    INVOKE  TransparentBlt,hDC,0,361,785,100,memDC,0,0,800,180,CREF_TRANSPARENT 
+
   ;---------------------------------------
   ;verifica se o usuário perdeu o jogo
-  ;mov ebx, barcoPos.x          ;melhorar lógica disso dps
-  ;mov ecx,  barcoPos.y
-  ;.if missilPos.x == ebx
-    ;.if missilPos.y == ecx
-    ;    mov perdeu, 1
-    ;.endif
-  ;.endif 
-  ;mov ebx, heliPos.x
-  ;mov ecx, heliPos.y
-  ;.if missilPos.x == ebx
-  ;  .if missilPos.y == ecx
-  ;      mov perdeu, 1
-  ;  .endif
-  ;.endif 
+;   mov ebx, barcoPos.x          ;melhorar lógica disso dps
+;   mov ecx,  barcoPos.y
+;   .if missilPos.x == ebx
+;     .if missilPos.y == ecx
+;         mov perdeu, 1
+;     .endif
+;   .endif 
+;   mov ebx, heliPos.x
+;   mov ecx, heliPos.y
+;   .if missilPos.x == ebx
+;     .if missilPos.y == ecx
+;         mov perdeu, 1
+;     .endif
+;   .endif 
 
-  ;.if perdeu == 1
-    ;invoke MessageBox,NULL,ADDR SuccessString,ADDR AppName,MB_OK 
-  ;.endif
+;   .if perdeu == 1
+;     invoke MessageBox,NULL,ADDR SuccessString,ADDR AppName,MB_OK 
+;   .endif
 
-  ;verifica se acertou
-  ;verificaTodos:
-    push ebx
+  push ebx
     push ecx
     push edx
     
@@ -483,6 +500,7 @@ ThreadProc PROC USES ecx Param:DWORD
 	.IF eax == WAIT_TIMEOUT	
 	    invoke PostMessage,hWnd,WM_FINISH,NULL,NULL
 	    jmp   ThreadProc     
+
 	.ELSEIF eax == WAIT_OBJECT_0	
 	    invoke PostMessage,hWnd,WM_FINISH,NULL,NULL
 	    jmp   ThreadProc

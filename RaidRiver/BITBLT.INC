@@ -75,7 +75,10 @@
     hInstance5    dd 0
     hInstance6    dd 0
     hInstance7    dd 0
+    hInstance8    dd 0
+
     hIcon         dd 0
+
     hBmp          dd 0
     hBmp2         dd 0
     hBmp3         dd 0
@@ -83,6 +86,7 @@
     hBmp5         dd 0
     hBmp6         dd 0
     hBmp7         dd 0
+    hBmp8         dd 0
 	
     memDC2        DWORD 0 
     x	 		  dd 0
