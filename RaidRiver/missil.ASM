@@ -154,8 +154,8 @@ WinMain proc hInst     :DWORD,
     ; Centre window at following size
     ;================================
 
-    mov Wwd, 800
-    mov Wht, 500
+    mov Wwd, 850
+    mov Wht, 650
 
     invoke GetSystemMetrics,SM_CXSCREEN
     invoke TopXY,Wwd,eax
@@ -214,7 +214,7 @@ WndProc proc hWin   :DWORD,
 		 
     .elseif uMsg == WM_CREATE                                         ;instancia posições
 		mov	missilAtual, 0
-		mov missilPos.y, 320
+		mov missilPos.y, 450              ;320
 		mov missilPos.x, 370
 
         mov barcoPos.y, 80
@@ -252,8 +252,7 @@ WndProc proc hWin   :DWORD,
 		                    NULL,NORMAL_PRIORITY_CLASS,\
 		                    ADDR ThreadDownID
 		mov    hThreadDown,eax
-
-		
+	
     .elseif uMsg == WM_SIZE
 ;    // obter o tamanho da janela
     
@@ -285,6 +284,7 @@ WndProc proc hWin   :DWORD,
         .endif
 		
     .elseif uMsg == WM_PAINT
+        ;invoke VerificaSeAcertouHeli
         invoke BeginPaint,hWin,ADDR Ps
         mov hDC, eax
         invoke Paint_Proc,hWin,hDC
@@ -304,16 +304,15 @@ WndProc proc hWin   :DWORD,
 		invoke InvalidateRect,hWnd,NULL,TRUE	
 
     .elseif uMsg==WM_BARCO                               
-
+        invoke VerificaSeAcertouBarco
         inc barcoPos.x
         
         .if barcoPos.x > 800
             mov barcoPos.x,0
-        .endif 
-
-       
+        .endif     
 
     .elseif uMsg==WM_HELI
+        invoke VerificaSeAcertouHeli
         inc heliPos.x
 
         .if heliPos.x > 800
@@ -321,7 +320,6 @@ WndProc proc hWin   :DWORD,
         .endif
 
      .elseif uMsg==WM_DOWN                              
-
         inc heliPos.y
         inc barcoPos.y 
         inc fuelPos.y
@@ -374,16 +372,77 @@ TopXY endp
 
 ; #########################################################################
 
+VerificaSeAcertouHeli proc ;pos:POINT<>
+    xor edx, edx
+    xor ebx, ebx
+    xor ecx, ecx
+    xor eax, eax
+
+    mov edx, heliPos.x
+    mov ebx, balaPos.x
+    sub ebx, edx
+
+    mov eax, balaPos.y
+    mov ecx, heliPos.y
+    sub ecx, eax
+ 
+    .if ecx <= 16 && ebx <= 16
+      ;exibir explosao
+      xor ecx, ecx
+      mov ecx, heliPos.x
+      mov explosaoPos.x, ecx
+
+      xor edx, edx
+      mov edx, heliPos.y
+      mov explosaoPos.y, edx
+
+      mov heliPos.x, 0      
+    .endif
+
+    xor edx, edx
+    xor ebx, ebx
+    xor ecx, ecx
+    xor eax, eax
+    ret
+VerificaSeAcertouHeli endp  
+
+VerificaSeAcertouBarco proc ;pos:POINT<>
+    xor edx, edx
+    xor ebx, ebx
+    xor ecx, ecx
+    xor eax, eax
+
+    mov edx, barcoPos.x
+    mov ebx, balaPos.x
+    sub ebx, edx
+
+    mov eax, balaPos.y
+    mov ecx, barcoPos.y
+    sub ecx, eax
+ 
+    .if ecx <= 16 && ebx <= 16
+      ;invoke MessageBox,NULL,ADDR SuccessString,ADDR AppName,MB_OK
+      mov barcoPos.x, 0      
+    .endif
+
+    xor edx, edx
+    xor ebx, ebx
+    xor ecx, ecx
+    xor eax, eax
+    ret
+VerificaSeAcertouBarco endp 
+
 Paint_Proc proc hWin:DWORD, hDC:DWORD
 
     LOCAL hOld:DWORD
     LOCAL memDC :DWORD
- 
-    
+
+    ;invoke VerificaSeAcertouHeli
+  
     invoke CreateCompatibleDC,hDC
     mov memDC, eax
     
-    ; ;------------fundo
+    ;------------fundo
     ; mov ecx, exibiu
 
     ; .if ecx != 1
@@ -424,64 +483,14 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
     .endif
 
     ;----------placar
-    invoke SelectObject,memDC,hBmp8  ; selecionei o novo bitmap
-    mov hOld, eax     
-    INVOKE  TransparentBlt,hDC,0,361,785,100,memDC,0,0,800,180,CREF_TRANSPARENT 
+    ;invoke SelectObject,memDC,hBmp8  ; selecionei o novo bitmap
+    ;mov hOld, eax     
+    ;INVOKE  TransparentBlt,hDC,0,361,785,100,memDC,0,0,800,180,CREF_TRANSPARENT 
 
-  ;---------------------------------------
-  ;verifica se o usuário perdeu o jogo
-;   mov ebx, barcoPos.x          ;melhorar lógica disso dps
-;   mov ecx,  barcoPos.y
-;   .if missilPos.x == ebx
-;     .if missilPos.y == ecx
-;         mov perdeu, 1
-;     .endif
-;   .endif 
-;   mov ebx, heliPos.x
-;   mov ecx, heliPos.y
-;   .if missilPos.x == ebx
-;     .if missilPos.y == ecx
-;         mov perdeu, 1
-;     .endif
-;   .endif 
-
-;   .if perdeu == 1
-;     invoke MessageBox,NULL,ADDR SuccessString,ADDR AppName,MB_OK 
-;   .endif
-
-  push ebx
-    push ecx
-    push edx
-    
-    mov edx, balaPos.x
-    mov ebx, heliPos.x
-    sub edx, ebx
-    xor ebx, ebx
-
-    .if edx <= 3
-        mov ecx, balaPos.y
-        mov ebx, heliPos.y  
-        sub ebx, ecx
-        .if ebx <= 3
-            invoke MessageBox,NULL,ADDR SuccessString,ADDR AppName,MB_OK
-            mov achou, 1
-            ;invoke MessageBox,NULL,ADDR SuccessString,ADDR AppName,MB_OK
-        .endif         
-    .endif
-
-    .if achou == 1
-        ;invoke MessageBox,NULL,ADDR SuccessString,ADDR AppName,MB_OK
-        mov achou, 0
-        ;----------helicoptero
-        invoke SelectObject,memDC,hBmp2  ; selecionei o novo bitmap
-        mov hOld, eax   
-        mov heliPos.x, 0  
-        INVOKE  TransparentBlt,hDC,heliPos.x,heliPos.y,32,23,memDC,0,0,32,23,CREF_TRANSPARENT    
-    .endif
-
-    pop edx
-    pop ecx
-    pop ebx
+    ;----------explosao
+    ;invoke SelectObject,memDC,hBmp9  ; selecionei o novo bitmap
+    ;mov hOld, eax     
+    ;INVOKE  TransparentBlt,hDC,explosaoPos.x, explosaoPos.y,35,18,memDC,0,0,35,18,CREF_TRANSPARENT 
 
     invoke SelectObject,hDC,hOld
     invoke DeleteDC,memDC
@@ -528,7 +537,7 @@ ThreadBarcoProc ENDP
 ThreadHeliProc PROC USES ecx Param:DWORD                      
 
     invoke WaitForSingleObject,hEventStart,10 ;INFINITE
-
+    
 	.IF eax == WAIT_TIMEOUT	
 	    invoke PostMessage,hWnd,WM_HELI,NULL,NULL
 	    jmp   ThreadHeliProc     

@@ -42,6 +42,8 @@
     TopXY        PROTO :DWORD,:DWORD
     FillBuffer   PROTO :DWORD,:DWORD,:BYTE
     Paint_Proc   PROTO :DWORD,:DWORD
+    VerificaSeAcertouHeli PROTO 
+    VerificaSeAcertouBarco PROTO 
 
     ;=============
     ; Local macros
@@ -87,6 +89,7 @@
     hBmp6         dd 0
     hBmp7         dd 0
     hBmp8         dd 0
+    hBmp9         dd 0        ;explosao
 	
     memDC2        DWORD 0 
     x	 		  dd 0
@@ -108,6 +111,9 @@
     balaPos     POINT <>
     barcoPos 	  POINT <>
     fuelPos     POINT <>
+    
+    explosaoPos     POINT <>
+
     hThreadDown 	 dd 0
     ThreadDownID  dd 0
 
