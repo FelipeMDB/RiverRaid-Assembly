@@ -44,6 +44,7 @@
     Paint_Proc   PROTO :DWORD,:DWORD
     VerificaSeAcertouHeli PROTO 
     VerificaSeAcertouBarco PROTO 
+    VerificaSeAcertouFuel PROTO 
 
     ;=============
     ; Local macros
@@ -71,13 +72,15 @@
     CommandLine   dd 0
     hWnd          dd 0
     hInstance     dd 0
-    hInstance2     dd 0
+    hInstance2    dd 0
     hInstance3    dd 0
     hInstance4    dd 0
     hInstance5    dd 0
     hInstance6    dd 0
     hInstance7    dd 0
     hInstance8    dd 0
+    hInstance9    dd 0
+    hInstance10   dd 0
 
     hIcon         dd 0
 
@@ -89,7 +92,8 @@
     hBmp6         dd 0
     hBmp7         dd 0
     hBmp8         dd 0
-    hBmp9         dd 0        ;explosao
+    hBmp9         dd 0   
+    hBmp10        dd 0   
 	
     memDC2        DWORD 0 
     x	 		  dd 0
@@ -111,8 +115,9 @@
     balaPos     POINT <>
     barcoPos 	  POINT <>
     fuelPos     POINT <>
-    
-    explosaoPos     POINT <>
+    explosaoPos POINT <>
+    esqPos      POINT <>
+    dirPos      POINT <>
 
     hThreadDown 	 dd 0
     ThreadDownID  dd 0

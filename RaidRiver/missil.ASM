@@ -14,6 +14,9 @@
     fundo            equ        106
     fuel             equ        105
     placar           equ        107
+    explosao         equ        108
+    esquerda         equ        109
+    direita          equ        110
 
 	CREF_TRANSPARENT  EQU 0FF00FFh
 	CREF_TRANSPARENT2 EQU 0FF0000h
@@ -44,32 +47,22 @@ start:
     mov CommandLine, eax
 
     ;----------------------------------------------
+    ;  xor eax, eax
+    ; invoke GetModuleHandle, NULL
+    ; mov hInstance3, eax
+ 
+    ; invoke LoadBitmap,hInstance3, fundo
+    ; mov hBmp3, eax
+
+    ; invoke GetCommandLine
+    ; mov CommandLine, eax
+    ;-----------------------------------------------
     xor eax, eax
     invoke GetModuleHandle, NULL
     mov hInstance4, eax
  
     invoke LoadBitmap,hInstance4, barco
     mov hBmp4, eax
-
-    invoke GetCommandLine
-    mov CommandLine, eax
-    ;--------------------------------------------
-    ;xor eax, eax
-    ;invoke GetModuleHandle, NULL            ;aqui
-    ;mov hInstance6, eax
- 
-    ;invoke LoadBitmap,hInstance6, terraE
-    ;mov hBmp6, eax
-
-    ;invoke GetCommandLine
-    ;mov CommandLine, eax
-    ;--------------------------------------------
-    xor eax, eax
-    invoke GetModuleHandle, NULL           
-    mov hInstance7, eax
- 
-    invoke LoadBitmap,hInstance7, fuel
-    mov hBmp7, eax
 
     invoke GetCommandLine
     mov CommandLine, eax
@@ -85,6 +78,27 @@ start:
     mov CommandLine, eax
     ;--------------------------------------------
     xor eax, eax
+    invoke GetModuleHandle, NULL            ;aqui
+    mov hInstance6, eax
+ 
+    invoke LoadBitmap,hInstance6, explosao
+    mov hBmp6, eax
+
+    invoke GetCommandLine
+    mov CommandLine, eax
+    ;--------------------------------------------
+    xor eax, eax
+    invoke GetModuleHandle, NULL           
+    mov hInstance7, eax
+ 
+    invoke LoadBitmap,hInstance7, fuel
+    mov hBmp7, eax
+
+    invoke GetCommandLine
+    mov CommandLine, eax
+   
+    ;--------------------------------------------
+    xor eax, eax
     invoke GetModuleHandle, NULL
     mov hInstance8, eax
  
@@ -93,16 +107,29 @@ start:
 
     invoke GetCommandLine
     mov CommandLine, eax
+   
     ;--------------------------------------------
     xor eax, eax
     invoke GetModuleHandle, NULL
-    mov hInstance3, eax
+    mov hInstance9, eax
  
-    invoke LoadBitmap,hInstance3, fundo
-    mov hBmp3, eax
+    invoke LoadBitmap,hInstance9, esquerda
+    mov hBmp9, eax
 
     invoke GetCommandLine
     mov CommandLine, eax
+   
+    ;--------------------------------------------
+    xor eax, eax
+    invoke GetModuleHandle, NULL
+    mov hInstance10, eax
+ 
+    invoke LoadBitmap,hInstance10, direita
+    mov hBmp10, eax
+
+    invoke GetCommandLine
+    mov CommandLine, eax
+   
     ;--------------------------------------------
     invoke WinMain,hInstance3,NULL,CommandLine,SW_SHOWDEFAULT
     invoke ExitProcess,eax
@@ -224,7 +251,15 @@ WndProc proc hWin   :DWORD,
 		mov heliPos.x, 10
 
         mov fuelPos.y, 0
-        mov fuelPos.x, 50
+        mov fuelPos.x, 250
+
+        mov explosaoPos.x,-100
+
+        mov esqPos.x, 0
+        mov esqPos.y, 1398
+
+        mov dirPos.x,680
+        mov dirPos.y,1398
 		
 		invoke CreateEvent,NULL,FALSE,FALSE,NULL
 		mov    hEventStart,eax
@@ -269,10 +304,14 @@ WndProc proc hWin   :DWORD,
         mov     eax,lParam
         and     eax, 000Fh
         .if wParam == VK_RIGHT
-            add missilPos.x, 10
+            .if missilPos.x<650
+                add missilPos.x, 10
+            .endif
             
         .elseif wParam == VK_LEFT
-            sub missilPos.x, 20
+           .if missilPos.x>158
+                sub missilPos.x, 20
+            .endif
 
         .elseif wParam == VK_UP
             mov ecx, missilPos.x
@@ -293,6 +332,7 @@ WndProc proc hWin   :DWORD,
 
    	    
    .elseif uMsg==WM_FINISH
+
         .if atirou == 1
             sub balaPos.y, 1
         .endif
@@ -301,29 +341,34 @@ WndProc proc hWin   :DWORD,
 			mov missilPos.y,100
 			mov missilPos.x,100
 		.endif 
+        
 		invoke InvalidateRect,hWnd,NULL,TRUE	
 
     .elseif uMsg==WM_BARCO                               
         invoke VerificaSeAcertouBarco
         inc barcoPos.x
         
-        .if barcoPos.x > 800
-            mov barcoPos.x,0
+        .if barcoPos.x > 650
+            mov barcoPos.x,142
         .endif     
 
     .elseif uMsg==WM_HELI
+        invoke VerificaSeAcertouFuel
         invoke VerificaSeAcertouHeli
         inc heliPos.x
 
-        .if heliPos.x > 800
-            mov heliPos.x,0
+        .if heliPos.x > 650
+            mov heliPos.x,142
         .endif
 
      .elseif uMsg==WM_DOWN                              
         inc heliPos.y
         inc barcoPos.y 
         inc fuelPos.y
-        
+        inc explosaoPos.y
+        sub esqPos.y, 1
+        sub dirPos.y, 1
+
         .if barcoPos.y > 365
             mov barcoPos.y,0
         .endif 
@@ -421,8 +466,17 @@ VerificaSeAcertouBarco proc ;pos:POINT<>
     sub ecx, eax
  
     .if ecx <= 16 && ebx <= 16
-      ;invoke MessageBox,NULL,ADDR SuccessString,ADDR AppName,MB_OK
-      mov barcoPos.x, 0      
+       ;exibir explosao
+      xor ecx, ecx
+      mov ecx, barcoPos.x
+      mov explosaoPos.x, ecx
+
+      xor edx, edx
+      mov edx, barcoPos.y
+      mov explosaoPos.y, edx
+
+      mov barcoPos.x, 0  
+          
     .endif
 
     xor edx, edx
@@ -431,6 +485,44 @@ VerificaSeAcertouBarco proc ;pos:POINT<>
     xor eax, eax
     ret
 VerificaSeAcertouBarco endp 
+
+VerificaSeAcertouFuel proc ;pos:POINT<>
+        xor edx, edx
+    xor ebx, ebx
+    xor ecx, ecx
+    xor eax, eax
+
+    mov edx, fuelPos.x
+    mov ebx, balaPos.x
+    sub ebx, edx
+
+    mov eax, balaPos.y
+    mov ecx, fuelPos.y
+    sub ecx, eax
+ 
+    .if ecx <= 16 && ebx <= 16
+       ;exibir explosao
+      xor ecx, ecx
+      mov ecx, fuelPos.x
+      mov explosaoPos.x, ecx
+
+      xor edx, edx
+      mov edx, fuelPos.y
+      mov explosaoPos.y, edx
+    
+      add fuelPos.x,20
+      .if fuelPos.x>650
+        mov fuelPos.x, 200
+      .endif
+      mov fuelPos.y, 0      
+    .endif
+
+    xor edx, edx
+    xor ebx, ebx
+    xor ecx, ecx
+    xor eax, eax
+    ret
+VerificaSeAcertouFuel endp  
 
 Paint_Proc proc hWin:DWORD, hDC:DWORD
 
@@ -488,10 +580,22 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
     ;INVOKE  TransparentBlt,hDC,0,361,785,100,memDC,0,0,800,180,CREF_TRANSPARENT 
 
     ;----------explosao
-    ;invoke SelectObject,memDC,hBmp9  ; selecionei o novo bitmap
-    ;mov hOld, eax     
-    ;INVOKE  TransparentBlt,hDC,explosaoPos.x, explosaoPos.y,35,18,memDC,0,0,35,18,CREF_TRANSPARENT 
-
+    invoke SelectObject,memDC,hBmp6  ; selecionei o novo bitmap
+    mov hOld, eax     
+    INVOKE  TransparentBlt,hDC,explosaoPos.x, explosaoPos.y,30,23,memDC,0,0,30,23,CREF_TRANSPARENT  
+    
+    ;----------terraEsquerda
+    invoke SelectObject,memDC,hBmp9  ; selecionei o novo bitmap
+    mov hOld, eax     
+    INVOKE  TransparentBlt,hDC,0, esqPos.x,142,800,memDC,0,esqPos.y,142,800,CREF_TRANSPARENT  
+    
+    ;----------terraDireita
+    invoke SelectObject,memDC,hBmp10  ; selecionei o novo bitmap
+    mov hOld, eax     
+    INVOKE  TransparentBlt,hDC,dirPos.x,0,150,800,memDC,0,esqPos.y,150,800,CREF_TRANSPARENT  
+    
+    
+    ;-------------------------------------------------------
     invoke SelectObject,hDC,hOld
     invoke DeleteDC,memDC
 
