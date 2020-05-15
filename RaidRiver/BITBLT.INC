@@ -44,7 +44,7 @@
     Paint_Proc   PROTO :DWORD,:DWORD
     VerificaSeAcertouHeli PROTO 
     VerificaSeAcertouBarco PROTO 
-    VerificaSeAcertouFuel PROTO 
+    VerificaFuel PROTO 
 
     ;=============
     ; Local macros
@@ -128,6 +128,9 @@
     heliPos 	  POINT <>
     hThreadHeli	  dd 0
     ThreadHeliID  dd 0
+
+    hThreadBala	  dd 0
+    ThreadBalaID  dd 0
     
     AppName  db "Raid River",0
     SuccessString db "Você perdeu!Deseja jogar novamente?",0
@@ -145,6 +148,8 @@ hwnd HANDLE ?
   WM_BARCO   equ WM_USER+101h
   WM_HELI   equ WM_USER+102h
   WM_DOWN   equ WM_USER+103h
+  WM_BALA   equ WM_USER+104h
+  WM_T   equ WM_USER+105h
 	
         
         

@@ -235,9 +235,21 @@ WndProc proc hWin   :DWORD,
     LOCAL hDC    :DWORD
     LOCAL Ps     :PAINTSTRUCT
 
+    
+	
+
     .if uMsg == WM_COMMAND
     ;======== menu commands ========
 		mov eax,wParam
+
+    .elseif uMsg == WM_PAINT
+        ;invoke VerificaSeAcertouHeli
+        invoke BeginPaint,hWin,ADDR Ps
+        mov hDC, eax
+        invoke Paint_Proc,hWin,hDC
+        invoke EndPaint,hWin,ADDR Ps
+        return 0
+
 		 
     .elseif uMsg == WM_CREATE                                         ;instancia posições
 		mov	missilAtual, 0
@@ -282,14 +294,20 @@ WndProc proc hWin   :DWORD,
 		                    ADDR ThreadHeliID
 		mov    hThreadHeli,eax
 
+        mov    eax,OFFSET ThreadBalaProc
+		invoke CreateThread,NULL,NULL,eax,\
+		                    NULL,NORMAL_PRIORITY_CLASS,\
+		                    ADDR ThreadBalaID
+		mov    hThreadBala,eax
+
         mov    eax,OFFSET ThreadDownProc
 		invoke CreateThread,NULL,NULL,eax,\
 		                    NULL,NORMAL_PRIORITY_CLASS,\
 		                    ADDR ThreadDownID
 		mov    hThreadDown,eax
-	
+
     .elseif uMsg == WM_SIZE
-;    // obter o tamanho da janela
+    ;obter o tamanho da janela
     
     .elseif uMsg == WM_LBUTTONDOWN
 		mov eax,lParam
@@ -322,14 +340,8 @@ WndProc proc hWin   :DWORD,
             mov atirou, 1
         .endif
 		
-    .elseif uMsg == WM_PAINT
-        ;invoke VerificaSeAcertouHeli
-        invoke BeginPaint,hWin,ADDR Ps
-        mov hDC, eax
-        invoke Paint_Proc,hWin,hDC
-        invoke EndPaint,hWin,ADDR Ps
-        return 0
-
+   ;paint ficava aqui
+   ;finish
    	    
    .elseif uMsg==WM_FINISH
 
@@ -348,17 +360,17 @@ WndProc proc hWin   :DWORD,
         invoke VerificaSeAcertouBarco
         inc barcoPos.x
         
-        .if barcoPos.x > 650
-            mov barcoPos.x,142
+        .if barcoPos.x > 645
+            mov barcoPos.x,162
         .endif     
 
     .elseif uMsg==WM_HELI
-        invoke VerificaSeAcertouFuel
+        invoke VerificaFuel
         invoke VerificaSeAcertouHeli
         inc heliPos.x
 
-        .if heliPos.x > 650
-            mov heliPos.x,142
+        .if heliPos.x > 645
+            mov heliPos.x,162
         .endif
 
      .elseif uMsg==WM_DOWN                              
@@ -382,7 +394,7 @@ WndProc proc hWin   :DWORD,
         .endif
        
 
-;		invoke InvalidateRect,hWnd,NULL,TRUE
+    ;invoke InvalidateRect,hWnd,NULL,TRUE
 
     .elseif uMsg == WM_CLOSE
         szText TheText,"Tem certeza que deseja sair?"
@@ -431,7 +443,7 @@ VerificaSeAcertouHeli proc ;pos:POINT<>
     mov ecx, heliPos.y
     sub ecx, eax
  
-    .if ecx <= 16 && ebx <= 16
+    .if ecx <= 18 && ebx <= 18
       ;exibir explosao
       xor ecx, ecx
       mov ecx, heliPos.x
@@ -465,7 +477,7 @@ VerificaSeAcertouBarco proc ;pos:POINT<>
     mov ecx, barcoPos.y
     sub ecx, eax
  
-    .if ecx <= 16 && ebx <= 16
+    .if ecx <= 18 && ebx <= 18
        ;exibir explosao
       xor ecx, ecx
       mov ecx, barcoPos.x
@@ -486,7 +498,7 @@ VerificaSeAcertouBarco proc ;pos:POINT<>
     ret
 VerificaSeAcertouBarco endp 
 
-VerificaSeAcertouFuel proc ;pos:POINT<>
+VerificaFuel proc ;pos:POINT<>
         xor edx, edx
     xor ebx, ebx
     xor ecx, ecx
@@ -522,7 +534,7 @@ VerificaSeAcertouFuel proc ;pos:POINT<>
     xor ecx, ecx
     xor eax, eax
     ret
-VerificaSeAcertouFuel endp  
+VerificaFuel endp  
 
 Paint_Proc proc hWin:DWORD, hDC:DWORD
 
@@ -652,9 +664,23 @@ ThreadHeliProc PROC USES ecx Param:DWORD
     ret
 ThreadHeliProc ENDP
 
+ThreadBalaProc PROC USES ecx Param:DWORD                      
+
+    invoke WaitForSingleObject,hEventStart,1 ;INFINITE
+
+	.IF eax == WAIT_TIMEOUT	
+	    invoke PostMessage,hWnd,WM_BALA,NULL,NULL
+	    jmp   ThreadBalaProc     
+    .ENDIF
+        
+    jmp   ThreadDownProc
+        
+    ret
+ThreadBalaProc ENDP
+
 ThreadDownProc PROC USES ecx Param:DWORD                      
 
-    invoke WaitForSingleObject,hEventStart,100 ;INFINITE
+    invoke WaitForSingleObject,hEventStart,80 ;INFINITE
 
 	.IF eax == WAIT_TIMEOUT	
 	    invoke PostMessage,hWnd,WM_DOWN,NULL,NULL
