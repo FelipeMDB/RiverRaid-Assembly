@@ -338,7 +338,6 @@ WndProc proc hWin   :DWORD,
         .endif
 
      .elseif uMsg == WM_PAINT
-        
         invoke BeginPaint,hWin,ADDR Ps
         mov hDC, eax
         invoke Paint_Proc,hWin,hDC
@@ -351,17 +350,9 @@ WndProc proc hWin   :DWORD,
    .elseif uMsg==WM_FINISH
         
 		invoke InvalidateRect,hWnd,NULL,TRUE
-        
 
-		;.if missilPos.y <= 0                              ;aviao
-		;	mov missilPos.y,100
-		;	mov missilPos.x,100
-		;.endif 
-
-    .elseif uMsg==WM_T   
-        
-		invoke InvalidateRect,hWnd,NULL,TRUE	
-
+    .elseif uMsg==WM_T           
+		;invoke InvalidateRect,hWnd,NULL,TRUE	
 
         invoke VerificaSeAcertouBarco
         inc barcoPos.x
@@ -381,7 +372,7 @@ WndProc proc hWin   :DWORD,
 
      .elseif uMsg==WM_DOWN                          
         invoke Abaixa
-    	
+    invoke InvalidateRect,hWnd,NULL,TRUE
 
     ;invoke InvalidateRect,hWnd,NULL,TRUE
 
@@ -419,12 +410,12 @@ TopXY endp
 ; #########################################################################
 
 Abaixa proc 
-    .if achou > 0
+    .if achou == 0
         mov explosaoPos.y,0
         mov explosaoPos.x, -250
         dec achou
     .endif
-    
+
     .if acelera == 0             ;aqui que tá errado
         inc heliPos.y
         inc barcoPos.y 
