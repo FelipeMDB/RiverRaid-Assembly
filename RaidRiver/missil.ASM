@@ -78,7 +78,7 @@ start:
     mov CommandLine, eax
     ;--------------------------------------------
     xor eax, eax
-    invoke GetModuleHandle, NULL            ;aqui
+    invoke GetModuleHandle, NULL            
     mov hInstance6, eax
  
     invoke LoadBitmap,hInstance6, explosao
@@ -130,6 +130,7 @@ start:
     invoke GetCommandLine
     mov CommandLine, eax
    
+    
     ;--------------------------------------------
     invoke WinMain,hInstance3,NULL,CommandLine,SW_SHOWDEFAULT
     invoke ExitProcess,eax
@@ -235,24 +236,20 @@ WndProc proc hWin   :DWORD,
     LOCAL hDC    :DWORD
     LOCAL Ps     :PAINTSTRUCT
 
-    
-	
-
     .if uMsg == WM_COMMAND
     ;======== menu commands ========
 		mov eax,wParam
 
-    .elseif uMsg == WM_PAINT
-        ;invoke VerificaSeAcertouHeli
-        invoke BeginPaint,hWin,ADDR Ps
-        mov hDC, eax
-        invoke Paint_Proc,hWin,hDC
-        invoke EndPaint,hWin,ADDR Ps
-        return 0
-
-		 
     .elseif uMsg == WM_CREATE                                         ;instancia posições
-		mov	missilAtual, 0
+		
+        ;invoke SelectObject,memDC,hBmp9  ; selecionei o novo bitmap
+        ; hOld, eax     
+        ;INVOKE  TransparentBlt,hDC,0, esqPos.x,142,800,caW,0,esqPos.y,142,800,CREF_TRANSPARENT  
+        ;invoke SelectObject,hDC,var
+        ;invoke DeleteDC,memDC
+
+
+        mov	missilAtual, 0
 		mov missilPos.y, 450              ;320
 		mov missilPos.x, 370
 
@@ -260,7 +257,7 @@ WndProc proc hWin   :DWORD,
 		mov barcoPos.x, 100
 
         mov heliPos.y, 300
-		mov heliPos.x, 10
+		mov heliPos.x, 20
 
         mov fuelPos.y, 0
         mov fuelPos.x, 250
@@ -337,26 +334,35 @@ WndProc proc hWin   :DWORD,
             mov balaPos.x, ecx
             mov ebx, missilPos.y
             mov balaPos.y, ebx
-            mov atirou, 1
+            inc atirou
         .endif
-		
-   ;paint ficava aqui
-   ;finish
-   	    
-   .elseif uMsg==WM_FINISH
 
-        .if atirou == 1
+     .elseif uMsg == WM_PAINT
+        
+        invoke BeginPaint,hWin,ADDR Ps
+        mov hDC, eax
+        invoke Paint_Proc,hWin,hDC
+        invoke EndPaint,hWin,ADDR Ps
+        return 0
+    .elseif uMsg==WM_BALA
+		 .if atirou >= 1
             sub balaPos.y, 1
         .endif
+   .elseif uMsg==WM_FINISH
+        
+		invoke InvalidateRect,hWnd,NULL,TRUE
+        
 
-		.if missilPos.y <= 0                              ;aviao
-			mov missilPos.y,100
-			mov missilPos.x,100
-		.endif 
+		;.if missilPos.y <= 0                              ;aviao
+		;	mov missilPos.y,100
+		;	mov missilPos.x,100
+		;.endif 
+
+    .elseif uMsg==WM_T   
         
 		invoke InvalidateRect,hWnd,NULL,TRUE	
 
-    .elseif uMsg==WM_BARCO                               
+
         invoke VerificaSeAcertouBarco
         inc barcoPos.x
         
@@ -364,7 +370,7 @@ WndProc proc hWin   :DWORD,
             mov barcoPos.x,162
         .endif     
 
-    .elseif uMsg==WM_HELI
+    ;.elseif uMsg==WM_HELI
         invoke VerificaFuel
         invoke VerificaSeAcertouHeli
         inc heliPos.x
@@ -373,26 +379,9 @@ WndProc proc hWin   :DWORD,
             mov heliPos.x,162
         .endif
 
-     .elseif uMsg==WM_DOWN                              
-        inc heliPos.y
-        inc barcoPos.y 
-        inc fuelPos.y
-        inc explosaoPos.y
-        sub esqPos.y, 1
-        sub dirPos.y, 1
-
-        .if barcoPos.y > 365
-            mov barcoPos.y,0
-        .endif 
-
-        .if heliPos.y > 365
-            mov heliPos.y, 0
-        .endif
-        
-        .if fuelPos.y > 365
-            mov fuelPos.y, 0
-        .endif
-       
+     .elseif uMsg==WM_DOWN                          
+        invoke Abaixa
+    	
 
     ;invoke InvalidateRect,hWnd,NULL,TRUE
 
@@ -429,12 +418,52 @@ TopXY endp
 
 ; #########################################################################
 
+Abaixa proc 
+    .if achou > 0
+        mov explosaoPos.y,0
+        mov explosaoPos.x, -250
+        dec achou
+    .endif
+    
+    .if acelera == 0             ;aqui que tá errado
+        inc heliPos.y
+        inc barcoPos.y 
+        add fuelPos.y, 2
+        inc explosaoPos.y
+        xor ecx, ecx
+        sub esqPos.y, 1
+        sub dirPos.y, 1
+    .elseif 
+        dec acelera
+        sub esqPos.y, 2
+        sub dirPos.y, 2
+
+        add heliPos.y, 2
+        add barcoPos.y, 2 
+        add fuelPos.y, 2
+        xor ecx, ecx    
+    .endif
+
+    .if barcoPos.y > 365
+        mov barcoPos.y,0
+    .endif 
+
+    .if heliPos.y > 365
+        mov heliPos.y, 0
+    .endif
+    
+    .if fuelPos.y > 485
+        mov fuelPos.y, 0
+    .endif
+Abaixa ENDP
+
+
 VerificaSeAcertouHeli proc ;pos:POINT<>
     xor edx, edx
     xor ebx, ebx
     xor ecx, ecx
     xor eax, eax
-
+    
     mov edx, heliPos.x
     mov ebx, balaPos.x
     sub ebx, edx
@@ -445,6 +474,7 @@ VerificaSeAcertouHeli proc ;pos:POINT<>
  
     .if ecx <= 18 && ebx <= 18
       ;exibir explosao
+      mov achou, 3
       xor ecx, ecx
       mov ecx, heliPos.x
       mov explosaoPos.x, ecx
@@ -452,7 +482,6 @@ VerificaSeAcertouHeli proc ;pos:POINT<>
       xor edx, edx
       mov edx, heliPos.y
       mov explosaoPos.y, edx
-
       mov heliPos.x, 0      
     .endif
 
@@ -479,6 +508,7 @@ VerificaSeAcertouBarco proc ;pos:POINT<>
  
     .if ecx <= 18 && ebx <= 18
        ;exibir explosao
+       mov achou, 3
       xor ecx, ecx
       mov ecx, barcoPos.x
       mov explosaoPos.x, ecx
@@ -486,7 +516,6 @@ VerificaSeAcertouBarco proc ;pos:POINT<>
       xor edx, edx
       mov edx, barcoPos.y
       mov explosaoPos.y, edx
-
       mov barcoPos.x, 0  
           
     .endif
@@ -499,30 +528,33 @@ VerificaSeAcertouBarco proc ;pos:POINT<>
 VerificaSeAcertouBarco endp 
 
 VerificaFuel proc ;pos:POINT<>
-        xor edx, edx
+    xor edx, edx
     xor ebx, ebx
     xor ecx, ecx
     xor eax, eax
 
     mov edx, fuelPos.x
-    mov ebx, balaPos.x
+    mov ebx, missilPos.x
     sub ebx, edx
 
-    mov eax, balaPos.y
+    mov eax, missilPos.y
     mov ecx, fuelPos.y
     sub ecx, eax
  
     .if ecx <= 16 && ebx <= 16
+      add acelera, 5
+      ;invoke Abaixa
        ;exibir explosao
-      xor ecx, ecx
-      mov ecx, fuelPos.x
-      mov explosaoPos.x, ecx
+      ;xor ecx, ecx
+      ;mov ecx, fuelPos.x
+      ;mov explosaoPos.x, ecx
 
-      xor edx, edx
-      mov edx, fuelPos.y
-      mov explosaoPos.y, edx
+      ;xor edx, edx
+      ;mov edx, fuelPos.y
+      ;mov explosaoPos.y, edx
     
       add fuelPos.x,20
+
       .if fuelPos.x>650
         mov fuelPos.x, 200
       .endif
@@ -576,9 +608,9 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
     INVOKE  TransparentBlt,hDC,barcoPos.x,barcoPos.y,35,18,memDC,0,0,35,18,CREF_TRANSPARENT 
 
     ;----------bala
-    .if atirou == 1 
+    .if atirou > 0
         .if balaPos.y <= 0
-            mov atirou,0
+            mov atirou,0         
         .elseif   
             invoke SelectObject,memDC,hBmp5  ; selecionei o novo bitmap
             mov hOld, eax     
@@ -595,7 +627,7 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
     invoke SelectObject,memDC,hBmp6  ; selecionei o novo bitmap
     mov hOld, eax     
     INVOKE  TransparentBlt,hDC,explosaoPos.x, explosaoPos.y,30,23,memDC,0,0,30,23,CREF_TRANSPARENT  
-    
+
     ;----------terraEsquerda
     invoke SelectObject,memDC,hBmp9  ; selecionei o novo bitmap
     mov hOld, eax     
@@ -620,7 +652,7 @@ Paint_Proc endp
 
 ThreadProc PROC USES ecx Param:DWORD
 
-    invoke WaitForSingleObject,hEventStart,1 ;INFINITE
+    invoke WaitForSingleObject,hEventStart,100000 ;INFINITE
 
 	.IF eax == WAIT_TIMEOUT	
 	    invoke PostMessage,hWnd,WM_FINISH,NULL,NULL
@@ -638,10 +670,10 @@ ThreadProc ENDP
 
 ThreadBarcoProc PROC USES ecx Param:DWORD                      
 
-    invoke WaitForSingleObject,hEventStart,10 ;INFINITE
+    invoke WaitForSingleObject,hEventStart,20 ;INFINITE
 
 	.IF eax == WAIT_TIMEOUT	
-	    invoke PostMessage,hWnd,WM_BARCO,NULL,NULL
+	    invoke PostMessage,hWnd,WM_T,NULL,NULL
 	    jmp   ThreadBarcoProc     
     .ENDIF
         
@@ -652,10 +684,10 @@ ThreadBarcoProc ENDP
 
 ThreadHeliProc PROC USES ecx Param:DWORD                      
 
-    invoke WaitForSingleObject,hEventStart,10 ;INFINITE
+    invoke WaitForSingleObject,hEventStart,20 ;INFINITE
     
 	.IF eax == WAIT_TIMEOUT	
-	    invoke PostMessage,hWnd,WM_HELI,NULL,NULL
+	    invoke PostMessage,hWnd,WM_T,NULL,NULL
 	    jmp   ThreadHeliProc     
     .ENDIF
         
@@ -673,7 +705,7 @@ ThreadBalaProc PROC USES ecx Param:DWORD
 	    jmp   ThreadBalaProc     
     .ENDIF
         
-    jmp   ThreadDownProc
+    jmp   ThreadBalaProc
         
     ret
 ThreadBalaProc ENDP

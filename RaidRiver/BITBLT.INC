@@ -45,6 +45,7 @@
     VerificaSeAcertouHeli PROTO 
     VerificaSeAcertouBarco PROTO 
     VerificaFuel PROTO 
+    Abaixa PROTO
 
     ;=============
     ; Local macros
@@ -100,6 +101,7 @@
     trasp		  dd  0
     achou		  dd  0
     atirou    dd 0
+    acelera   dd 0
     perdeu    dd 0
     lRect         RECT <>
     hitpoint 	    POINT <>
