@@ -112,8 +112,8 @@
     hThread 	  dd 0
     hEventStart   dd 0
 
-    aviaoAtual   dd 0
-    aviaoPos     POINT <>
+    missilAtual   dd 0
+    missilPos     POINT <>
 
     balaPos     POINT <>
     barcoPos 	  POINT <>

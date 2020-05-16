@@ -1,121 +1,155 @@
+; #########################################################################
+
     .386
     .model flat, stdcall  ; 32 bit memory model
     option casemap :none  ; case sensitive
+
     include bitblt.inc    ; local includes for this file
 
-	;código de link para imagem no arquivo RC
-	aviao		     equ		101  ;respectivamente: nome do bitmap, operando usado para definir constantes, código definido no arquivo RSRC.rc para identificação de cada imagem
-    helicopero       equ        103  ; ...
-    bala             equ        104  ; ...
-    barco            equ        102  ; ...
-    fundo            equ        106  ; ...
-    fuel             equ        105  ; ...
-    placar           equ        107  ; ...
-    explosao         equ        108  ; ...
-    esquerda         equ        109  ; ...
-    direita          equ        110  ; ...
+	; código de link para imagem no arquivo RC
+	aviao		     equ		101
+    helicopero       equ        103
+    bala             equ        104
+    barco            equ        102
+    fundo            equ        106
+    fuel             equ        105
+    placar           equ        107
+    explosao         equ        108
+    esquerda         equ        109
+    direita          equ        110
 
 	CREF_TRANSPARENT  EQU 0FF00FFh
 	CREF_TRANSPARENT2 EQU 0FF0000h
-    
+
+; #########################################################################
+
 .code
 
 start:
+
+    ;---------------------------------------------
     invoke GetModuleHandle, NULL
     mov hInstance, eax
     
-    invoke LoadBitmap,hInstance, helicopero         ;encontra, pelo nome definido acima, o código do bitmap que queremos 
-    mov hBmp2, eax                                  ;atribui o bitmap à variável para conseguirmos usá-lo depois no programa
+    invoke LoadBitmap,hInstance, helicopero
+    mov hBmp2, eax
 
     invoke GetCommandLine
     mov CommandLine, eax
     ;----------------------------------------------
-    xor eax, eax                                    ; ...          
-    invoke GetModuleHandle, NULL                    ; ...
-    mov hInstance2, eax                             ; ...
- 
-    invoke LoadBitmap,hInstance2, aviao             ; ... 
-    mov hBmp, eax                                   ; ...     
 
-    invoke GetCommandLine                           ; ...
-    mov CommandLine, eax                            ; ...
-    ;---------------------------------------------
-    xor eax, eax                                    ; ...
-    invoke GetModuleHandle, NULL                    ; ...
-    mov hInstance4, eax                             ; ...
+    xor eax, eax
+    invoke GetModuleHandle, NULL
+    mov hInstance2, eax
  
-    invoke LoadBitmap,hInstance4, barco             ; ...
-    mov hBmp4, eax                                  ; ...                 
+    invoke LoadBitmap,hInstance2, aviao
+    mov hBmp, eax
 
-    invoke GetCommandLine                           ; ...
-    mov CommandLine, eax                            ; ...
+    invoke GetCommandLine
+    mov CommandLine, eax
+
+    ;----------------------------------------------
+    ;  xor eax, eax
+    ; invoke GetModuleHandle, NULL
+    ; mov hInstance3, eax
+ 
+    ; invoke LoadBitmap,hInstance3, fundo
+    ; mov hBmp3, eax
+
+    ; invoke GetCommandLine
+    ; mov CommandLine, eax
+    ;-----------------------------------------------
+
+    xor eax, eax
+    invoke GetModuleHandle, NULL
+    mov hInstance4, eax
+ 
+    invoke LoadBitmap,hInstance4, barco
+    mov hBmp4, eax
+
+    invoke GetCommandLine
+    mov CommandLine, eax
     ;--------------------------------------------
-    xor eax, eax                                    ; ...
-    invoke GetModuleHandle, NULL                    ; ...
-    mov hInstance5, eax                             ; ...             
+
+    xor eax, eax
+    invoke GetModuleHandle, NULL
+    mov hInstance5, eax
  
-    invoke LoadBitmap,hInstance5, bala              ; ...
-    mov hBmp5, eax                                  ; ...                 
+    invoke LoadBitmap,hInstance5, bala
+    mov hBmp5, eax
 
-    invoke GetCommandLine                           ; ...
-    mov CommandLine, eax                            ; ...
+    invoke GetCommandLine
+    mov CommandLine, eax
     ;--------------------------------------------
-    xor eax, eax                                    ; ...
-    invoke GetModuleHandle, NULL                    ; ...       
-    mov hInstance6, eax                             ; ...                 
+
+    xor eax, eax
+    invoke GetModuleHandle, NULL            
+    mov hInstance6, eax
  
-    invoke LoadBitmap,hInstance6, explosao          ; ...
-    mov hBmp6, eax                                  ; ...          
+    invoke LoadBitmap,hInstance6, explosao
+    mov hBmp6, eax
 
-    invoke GetCommandLine                           ; ...
-    mov CommandLine, eax                            ; ...
+    invoke GetCommandLine
+    mov CommandLine, eax
     ;--------------------------------------------
-    xor eax, eax                                    ; ...
-    invoke GetModuleHandle, NULL                    ; ... 
-    mov hInstance7, eax                             ; ...
-  
-    invoke LoadBitmap,hInstance7, fuel              ; ...
-    mov hBmp7, eax                                  ; ...                    
 
-    invoke GetCommandLine                           ; ...
-    mov CommandLine, eax                            ; ...
-    ;--------------------------------------------
-    xor eax, eax                                    ; ...
-    invoke GetModuleHandle, NULL                    ; ...
-    mov hInstance8, eax                             ; ...
+    xor eax, eax
+    invoke GetModuleHandle, NULL           
+    mov hInstance7, eax
  
-    invoke LoadBitmap,hInstance8, placar            ; ...
-    mov hBmp8, eax                                  ; ...            
+    invoke LoadBitmap,hInstance7, fuel
+    mov hBmp7, eax
 
-    invoke GetCommandLine                           ; ...
-    mov CommandLine, eax                            ; ...
+    invoke GetCommandLine
+    mov CommandLine, eax
+   
     ;--------------------------------------------
-    xor eax, eax                                    ; ...
-    invoke GetModuleHandle, NULL                    ; ...
-    mov hInstance9, eax                             ; ...
- 
-    invoke LoadBitmap,hInstance9, esquerda          ; ...   
-    mov hBmp9, eax                                  ; ...                  
 
-    invoke GetCommandLine                           ; ...
-    mov CommandLine, eax                            ; ...
+    xor eax, eax
+    invoke GetModuleHandle, NULL
+    mov hInstance8, eax
+ 
+    invoke LoadBitmap,hInstance8, placar
+    mov hBmp8, eax
+
+    invoke GetCommandLine
+    mov CommandLine, eax
+   
     ;--------------------------------------------
-    xor eax, eax                                    ; ...
-    invoke GetModuleHandle, NULL                    ; ...
-    mov hInstance10, eax                            ; ...
- 
-    invoke LoadBitmap,hInstance10, direita          ; ...
-    mov hBmp10, eax                                 ; ...
 
-    invoke GetCommandLine                           ; ...
-    mov CommandLine, eax                            ; ...
+    xor eax, eax
+    invoke GetModuleHandle, NULL
+    mov hInstance9, eax
+ 
+    invoke LoadBitmap,hInstance9, esquerda
+    mov hBmp9, eax
+
+    invoke GetCommandLine
+    mov CommandLine, eax
+   
+    ;--------------------------------------------
+
+    xor eax, eax
+    invoke GetModuleHandle, NULL
+    mov hInstance10, eax
+ 
+    invoke LoadBitmap,hInstance10, direita
+    mov hBmp10, eax
+
+    invoke GetCommandLine
+    mov CommandLine, eax
+   
+    
     ;--------------------------------------------
     invoke WinMain,hInstance3,NULL,CommandLine,SW_SHOWDEFAULT
     invoke ExitProcess,eax
 
 ; #########################################################################
 
-WinMain proc hInst     :DWORD,hPrevInst :DWORD, CmdLine :DWORD, CmdShow   :DWORD
+WinMain proc hInst     :DWORD,
+             hPrevInst :DWORD,
+             CmdLine   :DWORD,
+             CmdShow   :DWORD
 
     ;====================
     ; Put LOCALs on stack
@@ -135,7 +169,7 @@ WinMain proc hInst     :DWORD,hPrevInst :DWORD, CmdLine :DWORD, CmdShow   :DWORD
     invoke LoadIcon,hInst,500    ; icon ID
     mov hIcon, eax
 
-    szText szClassName,"Raid_River_Cass"
+    szText szClassName,"Missil_20_Class"
 
     mov wc.cbSize,         sizeof WNDCLASSEX
     mov wc.style,          CS_BYTEALIGNWINDOW
@@ -168,9 +202,13 @@ WinMain proc hInst     :DWORD,hPrevInst :DWORD, CmdLine :DWORD, CmdShow   :DWORD
     invoke TopXY,Wht,eax
     mov Wty, eax
 
-    invoke CreateWindowEx,WS_EX_LEFT, ADDR szClassName, ADDR szDisplayName, WS_OVERLAPPEDWINDOW, 
-                          Wtx,Wty,Wwd,Wht, NULL,NULL, hInst,NULL
-
+    invoke CreateWindowEx,WS_EX_LEFT,
+                          ADDR szClassName,
+                          ADDR szDisplayName,
+                          WS_OVERLAPPEDWINDOW,
+                          Wtx,Wty,Wwd,Wht,
+                          NULL,NULL,
+                          hInst,NULL
     mov   hWnd,eax
 
     invoke ShowWindow,hWnd,SW_SHOWNORMAL
@@ -188,13 +226,17 @@ WinMain proc hInst     :DWORD,hPrevInst :DWORD, CmdLine :DWORD, CmdShow   :DWORD
       invoke DispatchMessage,  ADDR msg
       jmp StartLoop
     ExitLoop:
+
       return msg.wParam
 
 WinMain endp
 
 ; #########################################################################
 
-WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
+WndProc proc hWin   :DWORD,
+             uMsg   :DWORD,
+             wParam :DWORD,
+             lParam :DWORD
 
     LOCAL var    :DWORD
     LOCAL caW    :DWORD
@@ -204,15 +246,14 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
     LOCAL Ps     :PAINTSTRUCT
 
     .if uMsg == WM_COMMAND
+    ;======== menu commands ========
 		mov eax,wParam
 
     .elseif uMsg == WM_CREATE                                         ;instancia posições
 
-        ;mov	aviaoAtual, 0 
-
-        ;Posicionamento inicial de cada componente, suas coordenadas x e y             
-		mov aviaoPos.y, 450                    
-		mov aviaoPos.x, 370                    
+        mov	missilAtual, 0
+		mov missilPos.y, 450          
+		mov missilPos.x, 370
 
         mov barcoPos.y, 80
 		mov barcoPos.x, 100
@@ -280,20 +321,20 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
         mov     eax,lParam
         and     eax, 000Fh
         .if wParam == VK_RIGHT
-            .if aviaoPos.x<650
-                add aviaoPos.x, 10
+            .if missilPos.x<650
+                add missilPos.x, 10
             .endif
             
         .elseif wParam == VK_LEFT
-           .if aviaoPos.x>158
-                sub aviaoPos.x, 20
+           .if missilPos.x>158
+                sub missilPos.x, 20
             .endif
 
         .elseif wParam == VK_UP
-            mov ecx, aviaoPos.x
+            mov ecx, missilPos.x
             add ecx, 13
             mov balaPos.x, ecx
-            mov ebx, aviaoPos.y
+            mov ebx, missilPos.y
             mov balaPos.y, ebx
             inc atirou
         .endif
@@ -493,17 +534,17 @@ VerificaFuel proc
     xor eax, eax
 
     mov edx, fuelPos.x
-    mov ebx, aviaoPos.x
+    mov ebx, missilPos.x
     sub ebx, edx
 
-    mov eax, aviaoPos.y
+    mov eax, missilPos.y
     mov ecx, fuelPos.y
     sub ecx, eax
  
     .if ecx <= 26 && ebx <= 26
       add acelera, 500
     
-      add fuelPos.x,20
+      add fuelPos.x,40
 
       .if fuelPos.x>650
         mov fuelPos.x, 200
@@ -554,39 +595,39 @@ VerificaSePerdeu proc
     xor eax, eax
 
     mov edx, heliPos.x
-    mov ebx, aviaoPos.x
+    mov ebx, missilPos.x
     sub ebx, edx
 
-    mov eax, aviaoPos.y
+    mov eax, missilPos.y
     mov ecx, heliPos.y
     sub ecx, eax
  
     .if ecx <= 20 && ebx <= 20
         xor ecx, ecx
-        mov ecx, aviaoPos.x
+        mov ecx, missilPos.x
         mov explosaoPos.x, ecx
 
         xor edx, edx
-        mov edx, aviaoPos.y
+        mov edx, missilPos.y
         mov explosaoPos.y, edx
         inc perdeu
     .endif
 
     mov edx, barcoPos.x
-    mov ebx, aviaoPos.x
+    mov ebx, missilPos.x
     sub ebx, edx
 
-    mov eax, aviaoPos.y
+    mov eax, missilPos.y
     mov ecx, barcoPos.y
     sub ecx, eax
  
     .if ecx <= 16 && ebx <= 16
         xor ecx, ecx
-        mov ecx, aviaoPos.x
+        mov ecx, missilPos.x
         mov explosaoPos.x, ecx
 
         xor edx, edx
-        mov edx, aviaoPos.y
+        mov edx, missilPos.y
         mov explosaoPos.y, edx
         inc perdeu
     .endif
@@ -625,7 +666,7 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
     ;-----------aviao
     invoke SelectObject,memDC,hBmp  ; selecionei o novo bitmap
     mov hOld, eax                                                 
-    INVOKE  TransparentBlt,hDC,aviaoPos.x,aviaoPos.y,32,32,memDC,0,0,40,37,CREF_TRANSPARENT 
+    INVOKE  TransparentBlt,hDC,missilPos.x,missilPos.y,32,32,memDC,0,0,40,37,CREF_TRANSPARENT 
 
     ;----------helicoptero
     invoke SelectObject,memDC,hBmp2  ; selecionei o novo bitmap
