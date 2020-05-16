@@ -250,16 +250,9 @@ WndProc proc hWin   :DWORD,
 		mov eax,wParam
 
     .elseif uMsg == WM_CREATE                                         ;instancia posições
-		
-        ;invoke SelectObject,memDC,hBmp9  ; selecionei o novo bitmap
-        ; hOld, eax     
-        ;INVOKE  TransparentBlt,hDC,0, esqPos.x,142,800,caW,0,esqPos.y,142,800,CREF_TRANSPARENT  
-        ;invoke SelectObject,hDC,var
-        ;invoke DeleteDC,memDC
-
 
         mov	missilAtual, 0
-		mov missilPos.y, 450              ;320
+		mov missilPos.y, 450          
 		mov missilPos.x, 370
 
         mov barcoPos.y, 80
@@ -356,17 +349,15 @@ WndProc proc hWin   :DWORD,
 		 .if atirou >= 1
             sub balaPos.y, 1
         .endif
-   .elseif uMsg==WM_FINISH
-        
+   .elseif uMsg==WM_FINISH        
 		invoke InvalidateRect,hWnd,NULL,TRUE
 
-    .elseif uMsg==WM_T           
-		;invoke InvalidateRect,hWnd,NULL,TRUE	
-
+    .elseif uMsg==WM_T  
+        invoke VerificaSePerdeu         
         invoke VerificaSeAcertouBarco
         inc barcoPos.x
         
-        .if barcoPos.x > 645
+        .if barcoPos.x > 655
             mov barcoPos.x,162
         .endif     
 
@@ -375,19 +366,27 @@ WndProc proc hWin   :DWORD,
         invoke VerificaSeAcertouHeli
         inc heliPos.x
 
-        .if heliPos.x > 645
+        .if heliPos.x > 655
             mov heliPos.x,162
         .endif
 
      .elseif uMsg==WM_DOWN                          
         invoke Abaixa
+
     invoke InvalidateRect,hWnd,NULL,TRUE
 
-    ;invoke InvalidateRect,hWnd,NULL,TRUE
+    .elseif perdeu > 0
+        szText msg,"Você foi atingido! Deseja jogar de novo?"
+        invoke MessageBox,hWin,ADDR msg,ADDR szDisplayName,MB_YESNO
+            .if eax == IDNO
+                invoke ExitProcess, 0
+            .elseif
+                invoke ExitProcess, 0   ;AQUI GENTE
+            .endif
 
     .elseif uMsg == WM_CLOSE
-        szText TheText,"Tem certeza que deseja sair?"
-        invoke MessageBox,hWin,ADDR TheText,ADDR szDisplayName,MB_YESNO
+        szText perg,"Tem certeza que deseja sair?"
+        invoke MessageBox,hWin,ADDR perg,ADDR szDisplayName,MB_YESNO
           .if eax == IDNO
             return 0
           .endif
@@ -425,7 +424,7 @@ Abaixa proc
     .endif
     dec achou
 
-    .if acelera == 0             ;aqui que tá errado
+    .if acelera == 0        
         inc heliPos.y
         inc barcoPos.y 
         add fuelPos.y, 2
@@ -435,20 +434,20 @@ Abaixa proc
         sub dirPos.y, 1
     .elseif 
         dec acelera
-        sub esqPos.y, 2
-        sub dirPos.y, 2
+        sub esqPos.y, 10
+        sub dirPos.y, 10
 
-        add heliPos.y, 2
-        add barcoPos.y, 2 
-        add fuelPos.y, 2
+        add heliPos.y, 10
+        add barcoPos.y, 10 
+        add fuelPos.y, 10
         xor ecx, ecx    
     .endif
 
-    .if barcoPos.y > 365
+    .if barcoPos.y > 465
         mov barcoPos.y,0
     .endif 
 
-    .if heliPos.y > 365
+    .if heliPos.y > 465
         mov heliPos.y, 0
     .endif
     
@@ -457,8 +456,7 @@ Abaixa proc
     .endif
 Abaixa ENDP
 
-
-VerificaSeAcertouHeli proc ;pos:POINT<>     verificacao se o missel entrou em contato com helicoptero
+VerificaSeAcertouHeli proc                  ;verificacao se o missel entrou em contato com helicoptero
     xor edx, edx                            ;limpa os registradores 
     xor ebx, ebx
     xor ecx, ecx
@@ -483,7 +481,7 @@ VerificaSeAcertouHeli proc ;pos:POINT<>     verificacao se o missel entrou em co
       mov edx, heliPos.y
       mov explosaoPos.y, edx
       mov heliPos.x, 0      
-      mov balaPos.x, 0                      ;'apaga' a bala pois ela acertou o alvo
+      mov balaPos.x, -20                      ;'apaga' a bala pois ela acertou o alvo
     .endif
 
     xor edx, edx
@@ -493,7 +491,7 @@ VerificaSeAcertouHeli proc ;pos:POINT<>     verificacao se o missel entrou em co
     ret
 VerificaSeAcertouHeli endp  
 
-VerificaSeAcertouBarco proc ;pos:POINT<>
+VerificaSeAcertouBarco proc 
     xor edx, edx
     xor ebx, ebx
     xor ecx, ecx
@@ -518,7 +516,7 @@ VerificaSeAcertouBarco proc ;pos:POINT<>
       mov edx, barcoPos.y
       mov explosaoPos.y, edx
       mov barcoPos.x, 0  
-      mov balaPos.x, 0                      ;'apaga' a bala pois ela acertou o alvo
+      mov balaPos.x, -20                      ;'apaga' a bala pois ela acertou o alvo
           
     .endif
 
@@ -529,7 +527,7 @@ VerificaSeAcertouBarco proc ;pos:POINT<>
     ret
 VerificaSeAcertouBarco endp 
 
-VerificaFuel proc ;pos:POINT<>
+VerificaFuel proc 
     xor edx, edx
     xor ebx, ebx
     xor ecx, ecx
@@ -543,20 +541,10 @@ VerificaFuel proc ;pos:POINT<>
     mov ecx, fuelPos.y
     sub ecx, eax
  
-    .if ecx <= 16 && ebx <= 16
-      mov achou, 3
-      add acelera, 5
-      ;invoke Abaixa
-       ;exibir explosao
-      ;xor ecx, ecx
-      ;mov ecx, fuelPos.x
-      ;mov explosaoPos.x, ecx
-
-      ;xor edx, edx
-      ;mov edx, fuelPos.y
-      ;mov explosaoPos.y, edx
+    .if ecx <= 26 && ebx <= 26
+      add acelera, 500
     
-      add fuelPos.x,20
+      add fuelPos.x,40
 
       .if fuelPos.x>650
         mov fuelPos.x, 200
@@ -568,8 +556,88 @@ VerificaFuel proc ;pos:POINT<>
     xor ebx, ebx
     xor ecx, ecx
     xor eax, eax
+
+    mov edx, fuelPos.x
+    mov ebx, balaPos.x
+    sub ebx, edx
+
+    mov eax, balaPos.y
+    mov ecx, fuelPos.y
+    sub ecx, eax
+ 
+    .if ecx <= 26 && ebx <= 26
+      mov achou, 3
+      
+      ;exibir explosao
+      xor ecx, ecx
+      mov ecx, fuelPos.x
+      mov explosaoPos.x, ecx
+
+      xor edx, edx
+      mov edx, fuelPos.y
+      mov explosaoPos.y, edx
+    
+      add fuelPos.x,20
+
+      .if fuelPos.x>650
+        mov fuelPos.x, 200
+      .endif
+      mov fuelPos.y, 0      
+    .endif
+
     ret
 VerificaFuel endp  
+
+VerificaSePerdeu proc 
+    xor edx, edx
+    xor ebx, ebx
+    xor ecx, ecx
+    xor eax, eax
+
+    mov edx, heliPos.x
+    mov ebx, missilPos.x
+    sub ebx, edx
+
+    mov eax, missilPos.y
+    mov ecx, heliPos.y
+    sub ecx, eax
+ 
+    .if ecx <= 20 && ebx <= 20
+        xor ecx, ecx
+        mov ecx, missilPos.x
+        mov explosaoPos.x, ecx
+
+        xor edx, edx
+        mov edx, missilPos.y
+        mov explosaoPos.y, edx
+        inc perdeu
+    .endif
+
+    mov edx, barcoPos.x
+    mov ebx, missilPos.x
+    sub ebx, edx
+
+    mov eax, missilPos.y
+    mov ecx, barcoPos.y
+    sub ecx, eax
+ 
+    .if ecx <= 16 && ebx <= 16
+        xor ecx, ecx
+        mov ecx, missilPos.x
+        mov explosaoPos.x, ecx
+
+        xor edx, edx
+        mov edx, missilPos.y
+        mov explosaoPos.y, edx
+        inc perdeu
+    .endif
+
+    xor edx, edx
+    xor ebx, ebx
+    xor ecx, ecx
+    xor eax, eax
+    ret
+VerificaSePerdeu endp 
 
 Paint_Proc proc hWin:DWORD, hDC:DWORD
 
@@ -632,9 +700,12 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
     INVOKE  TransparentBlt,hDC,explosaoPos.x, explosaoPos.y,30,23,memDC,0,0,30,23,CREF_TRANSPARENT  
 
     ;----------terraEsquerda
+    ;.IF esqPos.y > 1398
+    ;    mov esqPos.y, 1398
+    ;.endif
     invoke SelectObject,memDC,hBmp9  ; seleciona o novo bitmap
     mov hOld, eax     
-    INVOKE  TransparentBlt,hDC,0, esqPos.x,142,800,memDC,0,esqPos.y,142,800,CREF_TRANSPARENT  
+    INVOKE  TransparentBlt,hDC, 0,esqPos.x, 142,800,memDC,0,esqPos.y,142,800,CREF_TRANSPARENT  
     
     ;----------terraDireita
     invoke SelectObject,memDC,hBmp10  ; seleciona o novo bitmap

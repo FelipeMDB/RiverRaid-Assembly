@@ -46,6 +46,7 @@
     VerificaSeAcertouBarco PROTO 
     VerificaFuel PROTO 
     Abaixa PROTO
+    VerificaSePerdeu PROTO
 
     ;=============
     ; Local macros
