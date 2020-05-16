@@ -412,9 +412,9 @@ TopXY endp
 Abaixa proc 
     .if achou == 0
         mov explosaoPos.y,0
-        mov explosaoPos.x, -250
-        dec achou
+        mov explosaoPos.x, -250        
     .endif
+    dec achou
 
     .if acelera == 0             ;aqui que tá errado
         inc heliPos.y
@@ -533,6 +533,7 @@ VerificaFuel proc ;pos:POINT<>
     sub ecx, eax
  
     .if ecx <= 16 && ebx <= 16
+      mov achou, 3
       add acelera, 5
       ;invoke Abaixa
        ;exibir explosao
