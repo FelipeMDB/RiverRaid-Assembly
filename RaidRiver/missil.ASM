@@ -26,6 +26,7 @@
 .code
 
 start:
+
     ;---------------------------------------------
     invoke GetModuleHandle, NULL
     mov hInstance, eax
@@ -36,6 +37,7 @@ start:
     invoke GetCommandLine
     mov CommandLine, eax
     ;----------------------------------------------
+
     xor eax, eax
     invoke GetModuleHandle, NULL
     mov hInstance2, eax
@@ -57,6 +59,7 @@ start:
     ; invoke GetCommandLine
     ; mov CommandLine, eax
     ;-----------------------------------------------
+
     xor eax, eax
     invoke GetModuleHandle, NULL
     mov hInstance4, eax
@@ -67,6 +70,7 @@ start:
     invoke GetCommandLine
     mov CommandLine, eax
     ;--------------------------------------------
+
     xor eax, eax
     invoke GetModuleHandle, NULL
     mov hInstance5, eax
@@ -77,6 +81,7 @@ start:
     invoke GetCommandLine
     mov CommandLine, eax
     ;--------------------------------------------
+
     xor eax, eax
     invoke GetModuleHandle, NULL            
     mov hInstance6, eax
@@ -87,6 +92,7 @@ start:
     invoke GetCommandLine
     mov CommandLine, eax
     ;--------------------------------------------
+
     xor eax, eax
     invoke GetModuleHandle, NULL           
     mov hInstance7, eax
@@ -98,6 +104,7 @@ start:
     mov CommandLine, eax
    
     ;--------------------------------------------
+
     xor eax, eax
     invoke GetModuleHandle, NULL
     mov hInstance8, eax
@@ -109,6 +116,7 @@ start:
     mov CommandLine, eax
    
     ;--------------------------------------------
+
     xor eax, eax
     invoke GetModuleHandle, NULL
     mov hInstance9, eax
@@ -120,6 +128,7 @@ start:
     mov CommandLine, eax
    
     ;--------------------------------------------
+
     xor eax, eax
     invoke GetModuleHandle, NULL
     mov hInstance10, eax
@@ -449,19 +458,19 @@ Abaixa proc
 Abaixa ENDP
 
 
-VerificaSeAcertouHeli proc ;pos:POINT<>
-    xor edx, edx
+VerificaSeAcertouHeli proc ;pos:POINT<>     verificacao se o missel entrou em contato com helicoptero
+    xor edx, edx                            ;limpa os registradores 
     xor ebx, ebx
     xor ecx, ecx
     xor eax, eax
     
-    mov edx, heliPos.x
-    mov ebx, balaPos.x
-    sub ebx, edx
+    mov edx, heliPos.x                      ;guarda em edx a posicao 'x' do helicoptero
+    mov ebx, balaPos.x                      ;guarda em ebx a posicao x da bala
+    sub ebx, edx                            ;subtrai de ebx e armazena em edx
 
-    mov eax, balaPos.y
-    mov ecx, heliPos.y
-    sub ecx, eax
+    mov eax, balaPos.y                      ;guarda em eax a posicao 'y' da bala
+    mov ecx, heliPos.y                      ;guarda em ecx a posicao 'y' do helicoptero
+    sub ecx, eax                            ;subtrai de eax e armazena em ecx
  
     .if ecx <= 18 && ebx <= 18
       ;exibir explosao
@@ -474,6 +483,7 @@ VerificaSeAcertouHeli proc ;pos:POINT<>
       mov edx, heliPos.y
       mov explosaoPos.y, edx
       mov heliPos.x, 0      
+      mov balaPos.x, 0                      ;'apaga' a bala pois ela acertou o alvo
     .endif
 
     xor edx, edx
@@ -508,6 +518,7 @@ VerificaSeAcertouBarco proc ;pos:POINT<>
       mov edx, barcoPos.y
       mov explosaoPos.y, edx
       mov barcoPos.x, 0  
+      mov balaPos.x, 0                      ;'apaga' a bala pois ela acertou o alvo
           
     .endif
 
@@ -611,22 +622,22 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
     .endif
 
     ;----------placar
-    ;invoke SelectObject,memDC,hBmp8  ; selecionei o novo bitmap
+    ;invoke SelectObject,memDC,hBmp8  ; seleciona o novo bitmap
     ;mov hOld, eax     
     ;INVOKE  TransparentBlt,hDC,0,361,785,100,memDC,0,0,800,180,CREF_TRANSPARENT 
 
     ;----------explosao
-    invoke SelectObject,memDC,hBmp6  ; selecionei o novo bitmap
+    invoke SelectObject,memDC,hBmp6  ; seleciona o novo bitmap
     mov hOld, eax     
     INVOKE  TransparentBlt,hDC,explosaoPos.x, explosaoPos.y,30,23,memDC,0,0,30,23,CREF_TRANSPARENT  
 
     ;----------terraEsquerda
-    invoke SelectObject,memDC,hBmp9  ; selecionei o novo bitmap
+    invoke SelectObject,memDC,hBmp9  ; seleciona o novo bitmap
     mov hOld, eax     
     INVOKE  TransparentBlt,hDC,0, esqPos.x,142,800,memDC,0,esqPos.y,142,800,CREF_TRANSPARENT  
     
     ;----------terraDireita
-    invoke SelectObject,memDC,hBmp10  ; selecionei o novo bitmap
+    invoke SelectObject,memDC,hBmp10  ; seleciona o novo bitmap
     mov hOld, eax     
     INVOKE  TransparentBlt,hDC,dirPos.x,0,150,800,memDC,0,esqPos.y,150,800,CREF_TRANSPARENT  
     
@@ -704,7 +715,7 @@ ThreadBalaProc ENDP
 
 ThreadDownProc PROC USES ecx Param:DWORD                      
 
-    invoke WaitForSingleObject,hEventStart,80 ;INFINITE
+    invoke WaitForSingleObject,hEventStart,80       ;INFINITE
 
 	.IF eax == WAIT_TIMEOUT	
 	    invoke PostMessage,hWnd,WM_DOWN,NULL,NULL
@@ -716,4 +727,4 @@ ThreadDownProc PROC USES ecx Param:DWORD
     ret
 ThreadDownProc ENDP
 
-end start
+end start                                             ;finaliza o codigo  
