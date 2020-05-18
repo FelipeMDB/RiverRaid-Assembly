@@ -83,6 +83,7 @@
     hInstance8    dd 0
     hInstance9    dd 0
     hInstance10   dd 0
+    hInstance11   dd 0
 
     hIcon         dd 0
 
@@ -96,7 +97,8 @@
     hBmp8         dd 0
     hBmp9         dd 0   
     hBmp10        dd 0   
-	
+	  hBmp11        dd 0   
+
     memDC2        DWORD 0 
     x	 		  dd 0
     trasp		  dd  0
@@ -111,6 +113,7 @@
     ExitCode 	  dd 0
     hThread 	  dd 0
     hEventStart   dd 0
+    tempo     dd  0
 
     aviaoAtual   dd 0
     aviaoPos     POINT <>

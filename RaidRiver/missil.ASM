@@ -14,6 +14,7 @@
     explosao         equ        108  ; ...
     esquerda         equ        109  ; ...
     direita          equ        110  ; ...
+    gasometro        equ        111  ; ...
 
 	CREF_TRANSPARENT  EQU 0FF00FFh
 	CREF_TRANSPARENT2 EQU 0FF0000h
@@ -106,6 +107,16 @@ start:
  
     invoke LoadBitmap,hInstance10, direita          ; ...
     mov hBmp10, eax                                 ; ...
+
+    invoke GetCommandLine                           ; ...
+    mov CommandLine, eax                            ; ...
+    ;--------------------------------------------
+     xor eax, eax                                    ; ...
+    invoke GetModuleHandle, NULL                    ; ...
+    mov hInstance11, eax                            ; ...
+ 
+    invoke LoadBitmap,hInstance11, gasometro          ; ...
+    mov hBmp11, eax                                 ; ...
 
     invoke GetCommandLine                           ; ...
     mov CommandLine, eax                            ; ...
@@ -230,6 +241,7 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
 
         mov dirPos.x,680
         mov dirPos.y,1398
+
 		
 		invoke CreateEvent,NULL,FALSE,FALSE,NULL
 		mov    hEventStart,eax
@@ -377,6 +389,12 @@ TopXY endp
 ; #########################################################################
 
 Abaixa proc 
+    inc tempo
+
+    .if tempo == 100
+        inc perdeu
+    .endif
+
     .if achou == 0
         mov explosaoPos.y,0
         mov explosaoPos.x, -250        
@@ -569,7 +587,7 @@ VerificaSePerdeu proc
         xor edx, edx
         mov edx, aviaoPos.y
         mov explosaoPos.y, edx
-        inc perdeu
+        ; inc perdeu
     .endif
 
     mov edx, barcoPos.x
@@ -588,8 +606,27 @@ VerificaSePerdeu proc
         xor edx, edx
         mov edx, aviaoPos.y
         mov explosaoPos.y, edx
-        inc perdeu
+        ; inc perdeu
     .endif
+
+    ; mov edx, fuelPos.x
+    ; mov ebx, aviaoPos.x
+    ; sub ebx, edx
+
+    ; mov eax, fuelPos.y
+    ; mov ecx, barcoPos.y
+    ; sub ecx, eax
+ 
+    ; .if ecx <= 16 && ebx <= 16
+    ;     xor ecx, ecx
+    ;     mov ecx, aviaoPos.x
+    ;     mov explosaoPos.x, ecx
+
+    ;     xor edx, edx
+    ;     mov edx, aviaoPos.y
+    ;     mov explosaoPos.y, edx
+    ;     inc perdeu
+    ; .endif
 
     xor edx, edx
     xor ebx, ebx
@@ -648,11 +685,6 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
         .endif
     .endif
 
-    ;----------placar
-    ;invoke SelectObject,memDC,hBmp8  ; seleciona o novo bitmap
-    ;mov hOld, eax     
-    ;INVOKE  TransparentBlt,hDC,0,361,785,100,memDC,0,0,800,180,CREF_TRANSPARENT 
-
     ;----------explosao
     invoke SelectObject,memDC,hBmp6  ; seleciona o novo bitmap
     mov hOld, eax     
@@ -670,8 +702,16 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
     invoke SelectObject,memDC,hBmp10  ; seleciona o novo bitmap
     mov hOld, eax     
     INVOKE  TransparentBlt,hDC,dirPos.x,0,150,800,memDC,0,esqPos.y,150,800,CREF_TRANSPARENT  
+
+    ; ----------placar
+    invoke SelectObject,memDC,hBmp8  ; seleciona o novo bitmap
+    mov hOld, eax     
+    INVOKE  TransparentBlt,hDC,0,492,835,120,memDC,0,0,800,180,CREF_TRANSPARENT 
     
-    
+    ; ----------gasometro
+    invoke SelectObject,memDC,hBmp11  ; seleciona o novo bitmap
+    mov hOld, eax     
+    INVOKE  TransparentBlt,hDC,0,492,100,20,memDC,0,0,600,148,CREF_TRANSPARENT 
     ;-------------------------------------------------------
     invoke SelectObject,hDC,hOld
     invoke DeleteDC,memDC
