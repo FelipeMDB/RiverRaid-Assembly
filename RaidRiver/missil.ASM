@@ -22,15 +22,16 @@
     
 .code
 
-start:
+start:                     ;método para iniciar o programa, sempre é o primeiro a ser chamado automaticamente por padrão
+                           ;cria todos os bitmaps que serão usados e chama o procedimento que cria a janela
     invoke GetModuleHandle, NULL
-    mov hInstance, eax
+    mov hInstance, eax 
     
     invoke LoadBitmap,hInstance, helicopero         ;encontra, pelo nome definido acima, o código do bitmap que queremos 
     mov hBmp2, eax                                  ;atribui o bitmap à variável para conseguirmos usá-lo depois no programa
 
-    invoke GetCommandLine
-    mov CommandLine, eax
+    invoke GetCommandLine                           ;prepara para adicionar bitmap
+    mov CommandLine, eax                            ;adiciona bitmap
     ;----------------------------------------------
     xor eax, eax                                    ; ...          
     invoke GetModuleHandle, NULL                    ; ...
@@ -132,8 +133,8 @@ start:
     invoke GetCommandLine                           ; ...
     mov CommandLine, eax                            ; ...
     ;--------------------------------------------
-    invoke WinMain,hInstance3,NULL,CommandLine,SW_SHOWDEFAULT
-    invoke ExitProcess,eax
+    invoke WinMain,hInstance3,NULL,CommandLine,SW_SHOWDEFAULT ;chama o procedimento que criará a janela
+    invoke ExitProcess,eax                                    ;sai do start
 
 ; #########################################################################
 
@@ -165,7 +166,7 @@ WinMain proc hInst     :DWORD,hPrevInst :DWORD, CmdLine :DWORD, CmdShow   :DWORD
     mov wc.cbClsExtra,     NULL
     mov wc.cbWndExtra,     NULL
     m2m wc.hInstance,      hInst
-    mov wc.hbrBackground, 0EH
+    mov wc.hbrBackground, 0EH     ;define a cor do plano de fundo, azul escuro
     mov wc.lpszMenuName,   NULL   ;OFFSET MenuName
     mov wc.lpszClassName,  offset szClassName
     m2m wc.hIcon,          hIcon
@@ -193,6 +194,7 @@ WinMain proc hInst     :DWORD,hPrevInst :DWORD, CmdLine :DWORD, CmdShow   :DWORD
     invoke CreateWindowEx,WS_EX_LEFT, ADDR szClassName, ADDR szDisplayName, WS_OVERLAPPEDWINDOW, 
                           Wtx,Wty,Wwd,Wht, NULL,NULL, hInst,NULL
 
+    
     mov   hWnd,eax
 
     invoke ShowWindow,hWnd,SW_SHOWNORMAL
@@ -231,9 +233,6 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
     mov Rect.bottom, 498
     mov Rect.right, 1000000
 
-
-  
-
     .if uMsg == WM_COMMAND
 		mov eax,wParam
 
@@ -243,7 +242,10 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
 
         ;Posicionamento inicial de cada componente, suas coordenadas x e y             
 		mov aviaoPos.y, 450                    
-		mov aviaoPos.x, 370                    
+		mov aviaoPos.x, 370  
+
+        mov sera, 0   
+               
 
         mov barcoPos.y, 80
 		mov barcoPos.x, 100
@@ -270,7 +272,7 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
 		
 		invoke CreateEvent,NULL,FALSE,FALSE,NULL
 		mov    hEventStart,eax
-		
+
 		mov    eax,OFFSET ThreadProc
 		invoke CreateThread,NULL,NULL,eax,\
 		                    NULL,NORMAL_PRIORITY_CLASS,\
@@ -300,6 +302,11 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
 		                    NULL,NORMAL_PRIORITY_CLASS,\
 		                    ADDR ThreadDownID
 		mov    hThreadDown,eax
+
+        
+        szText inicio,"O jogo vai comecar, prepare-se!"
+        invoke MessageBox,hWin,ADDR inicio,ADDR szDisplayName,MB_OK
+		
 
     .elseif uMsg == WM_SIZE
     ;obter o tamanho da janela
@@ -371,32 +378,24 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
             invoke Abaixa
             invoke InvalidateRect,hWnd, addr Rect,TRUE
                      
-    .if perdeu > 0
-        mov Rect.left, 0
-        mov Rect.top, 0
-        mov Rect.bottom, 0
-        mov Rect.right, 0
-        
-        invoke ExitProcess, 0
-        szText msg,"Você foi atingido! Deseja jogar de novo?"
-        invoke MessageBox,hWin,ADDR msg,ADDR szDisplayName,MB_OK
-            .if eax == IDOK
-                invoke ExitProcess, 0
-            .endif
-        .elseif acabouGasolina > 0
-            mov Rect.left, 10000
-            mov Rect.top, 100000
-            mov Rect.bottom, 1000000
-            mov Rect.right, 10000
-            invoke ExitProcess, 0
-            szText msgG,"Sua gasolina acabou, você perdeu! Deseja jogar de novo?"
-            invoke MessageBox,hWin,ADDR msgG,ADDR szDisplayName,MB_YESNO
-                .if eax == IDNO
-                    invoke ExitProcess, 0
-                .elseif
-                    ;invoke ExitProcess, 0   ;AQUI GENTE
-                .endif
-                
+    .if perdeu > 0      
+        .if sera == 0
+            mov sera, 2 
+            ;mov Rect.bottom, 0
+            ;mov Rect.right, 0
+            ;invoke InvalidateRect,hWnd, addr Rect,TRUE
+            invoke verifica, hWin              
+        .endif
+    .endif
+    
+
+    .if acabouGasolina > 0
+        .if sera == 0
+            mov sera, 2
+            ;mov Rect.bottom, 0
+            ;mov Rect.right, 0
+            invoke verifica, hWin 
+        .endif    
     .endif
 
     .elseif uMsg == WM_CLOSE
@@ -414,8 +413,32 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
     invoke DefWindowProc,hWin,uMsg,wParam,lParam
 
     ret
-
 WndProc endp
+
+verifica proc hWin:DWORD ;Procedimento chamado quando o usuário perdeu, pergunta se ele quer jogar novamente ou sair
+        
+        .if perdeu > 0                                            ;verifica se perdeu porque foi atingido por um obstáculo
+            szText msg,"Voce foi atingido! Deseja jogar de novo?" ;cria a variavel contendo o texto que será a mensagem
+            invoke MessageBox,hWin,ADDR msg,ADDR szDisplayName,MB_YESNO  ;cria a message box, do tipo de resposta SIM ou NAO, com o texto criado acima
+                .if eax == IDNO               ;se o usuário escolheu sair
+                    invoke ExitProcess, 0     ;abortamos o programa, terminamos a execução
+                .elseif                       ;se o usuário escolheu jogar novamente
+                    mov perdeu, 0
+                    mov acabouGasolina, 0
+                    invoke WinMain, NULL, NULL, NULL, NULL ;chama o procedimento que cria a janela novamente, recomeçando o jogo
+                .endif                        ;determina que o if acabou
+        .elseif acabouGasolina > 0            ;verifica se perdeu porque a gasolina acabou
+            szText msgG,"Sua gasolina acabou, voce perdeu! Deseja jogar de novo?"  ;cria a variavel contendo o texto que será a mensagem
+            invoke MessageBox,hWin,ADDR msgG,ADDR szDisplayName,MB_YESNO           ;cria a message box, do tipo de resposta SIM ou NAO, com o texto criado acima
+                .if eax == IDNO               ;se o usuário escolheu sair
+                    invoke ExitProcess, 0     ;abortamos o programa, terminamos a execução
+                .elseif                       ;se o usuário escolheu jogar novamente
+                    mov perdeu, 0
+                    mov acabouGasolina, 0
+                    invoke WinMain, NULL, NULL, NULL, NULL ;chama o procedimento que cria a janela novamente, recomeçando o jogo   
+                .endif                        ;determina que o if acabou
+        .endif                                ;determina que o if acabou
+verifica endp                                 ;fim da definição do procedimento
 
 ; ########################################################################
 
@@ -498,7 +521,7 @@ VerificaSeAcertouHeli proc                  ;verificacao se o missel entrou em c
     mov ecx, heliPos.y                      ;guarda em ecx a posicao 'y' do helicoptero
     sub ecx, eax                            ;subtrai de eax e armazena em ecx
  
-    .if ecx <= 18 && ebx <= 18
+    .if ecx <= 20 && ebx <= 20
       ;exibir explosao
       mov achou, 3
       xor ecx, ecx
@@ -533,7 +556,7 @@ VerificaSeAcertouBarco proc
     mov ecx, barcoPos.y
     sub ecx, eax
  
-    .if ecx <= 18 && ebx <= 18
+    .if ecx <= 40 && ebx <= 40
        ;exibir explosao
        mov achou, 3
       xor ecx, ecx
@@ -695,7 +718,7 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos d
     invoke CreateCompatibleDC,hDC
     mov memDC, eax
 
-  ;----------fuel
+    ;----------fuel
     invoke SelectObject,memDC,hBmp7  ; selecionei o novo bitmap
     mov hOld, eax     
     INVOKE  TransparentBlt,hDC,fuelPos.x,fuelPos.y,28,55,memDC,0,0,28,55,CREF_TRANSPARENT 
@@ -722,6 +745,10 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos d
         .elseif   
             invoke SelectObject,memDC,hBmp5  ; selecionei o novo bitmap
             mov hOld, eax     
+            INVOKE  TransparentBlt,hDC,balaPos.x,balaPos.y,10,19,memDC,0,0,10,19,CREF_TRANSPARENT 
+            sub balaPos.y, 25
+            INVOKE  TransparentBlt,hDC,balaPos.x,balaPos.y,10,19,memDC,0,0,10,19,CREF_TRANSPARENT 
+            sub balaPos.y, 23
             INVOKE  TransparentBlt,hDC,balaPos.x,balaPos.y,10,19,memDC,0,0,10,19,CREF_TRANSPARENT 
         .endif
     .endif
@@ -775,7 +802,7 @@ Paint_Proc endp
 
 ThreadProc PROC USES ecx Param:DWORD  ;Thread executada para desenhar o bitmap do avião
 
-    invoke WaitForSingleObject,hEventStart,100000 ;INFINITE
+    invoke WaitForSingleObject,hEventStart,100000 ;define o timer, de quanto em quanto tempo essa thread será chamada
 
 	.IF eax == WAIT_TIMEOUT	
 	    invoke PostMessage,hWnd,WM_FINISH,NULL,NULL
@@ -791,9 +818,9 @@ ThreadProc PROC USES ecx Param:DWORD  ;Thread executada para desenhar o bitmap d
     ret
 ThreadProc ENDP
 
-ThreadBarcoProc PROC USES ecx Param:DWORD     ;Thread executada para desenhar o bitmap do barco                 
+ThreadBarcoProc PROC USES ecx Param:DWORD         ;Thread executada para desenhar o bitmap do barco                 
 
-    invoke WaitForSingleObject,hEventStart,20 ;INFINITE
+    invoke WaitForSingleObject,hEventStart,20     ;define o timer, de quanto em quanto tempo essa thread será chamada
 
 	.IF eax == WAIT_TIMEOUT	
 	    invoke PostMessage,hWnd,WM_T,NULL,NULL
@@ -805,9 +832,9 @@ ThreadBarcoProc PROC USES ecx Param:DWORD     ;Thread executada para desenhar o 
     ret
 ThreadBarcoProc ENDP
 
-ThreadHeliProc PROC USES ecx Param:DWORD     ;Thread executada para desenhar o bitmap do helicopero                 
+ThreadHeliProc PROC USES ecx Param:DWORD          ;Thread executada para desenhar o bitmap do helicopero                 
 
-    invoke WaitForSingleObject,hEventStart,20 ;INFINITE
+    invoke WaitForSingleObject,hEventStart,20     ;define o timer, de quanto em quanto tempo essa thread será chamada ;INFINITE
     
 	.IF eax == WAIT_TIMEOUT	
 	    invoke PostMessage,hWnd,WM_T,NULL,NULL
@@ -819,9 +846,9 @@ ThreadHeliProc PROC USES ecx Param:DWORD     ;Thread executada para desenhar o b
     ret
 ThreadHeliProc ENDP
 
-ThreadBalaProc PROC USES ecx Param:DWORD     ;Thread executada para desenhar o bitmap d  bala, a cada 1 segundo, para ser rápida  (a cada um segundo ela é desenhada em sua posição, que muda constantemente quando o avião atira)                
+ThreadBalaProc PROC USES ecx Param:DWORD             ;Thread executada para desenhar o bitmap d  bala, a cada 1 segundo, para ser rápida  (a cada um segundo ela é desenhada em sua posição, que muda constantemente quando o avião atira)                
 
-    invoke WaitForSingleObject,hEventStart,1 ;INFINITE
+    invoke WaitForSingleObject,hEventStart,1         ;define o timer, de quanto em quanto tempo essa thread será chamada
 
 	.IF eax == WAIT_TIMEOUT	
 	    invoke PostMessage,hWnd,WM_BALA,NULL,NULL
@@ -835,7 +862,7 @@ ThreadBalaProc ENDP
 
 ThreadDownProc PROC USES ecx Param:DWORD     ;Thread executada para desenhar o ambiente, como todos os seus elementos exceto o avião, sempre mais "para baixo", criando a impressão que o avião está ind para frente               
 
-    invoke WaitForSingleObject,hEventStart,80       ;INFINITE
+    invoke WaitForSingleObject,hEventStart,80       ;define o timer, de quanto em quanto tempo essa thread será chamada
 
 	.IF eax == WAIT_TIMEOUT	
 	    invoke PostMessage,hWnd,WM_DOWN,NULL,NULL

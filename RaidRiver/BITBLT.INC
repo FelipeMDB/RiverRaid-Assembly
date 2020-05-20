@@ -47,6 +47,7 @@
     VerificaFuel PROTO 
     Abaixa PROTO
     VerificaSePerdeu PROTO
+    verifica PROTO :DWORD
 
     ;=============
     ; Local macros
@@ -108,6 +109,7 @@
     atirou    dd 0
     acelera   dd 0
     perdeu    dd 0
+    sera  dd 0
     acabouGasolina dd 0
     ;lRect         RECT <>
     hitpoint 	    POINT <>
