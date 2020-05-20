@@ -230,7 +230,7 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
 
     mov Rect.left, 0
     mov Rect.top, 0
-    mov Rect.bottom, 498
+    mov Rect.bottom, 800
     mov Rect.right, 1000000
 
     .if uMsg == WM_COMMAND
@@ -264,10 +264,10 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
         mov dirPos.x, 680
         mov dirPos.y, 1398
 
-        mov gasPos.x, 272
+        mov gasPos.x, 520
         mov gasPos.y, 525
 
-        mov tempo, 1000
+        mov tempo, 500
 
 		
 		invoke CreateEvent,NULL,FALSE,FALSE,NULL
@@ -394,7 +394,7 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
             mov sera, 2
             ;mov Rect.bottom, 0
             ;mov Rect.right, 0
-            invoke verifica, hWin 
+            ;invoke verifica, hWin 
         .endif    
     .endif
 
@@ -425,6 +425,7 @@ verifica proc hWin:DWORD ;Procedimento chamado quando o usuário perdeu, pergunt
                 .elseif                       ;se o usuário escolheu jogar novamente
                     mov perdeu, 0
                     mov acabouGasolina, 0
+                    
                     invoke WinMain, NULL, NULL, NULL, NULL ;chama o procedimento que cria a janela novamente, recomeçando o jogo
                 .endif                        ;determina que o if acabou
         .elseif acabouGasolina > 0            ;verifica se perdeu porque a gasolina acabou
@@ -455,7 +456,7 @@ TopXY endp
 ; #########################################################################
 
 Abaixa proc 
-    inc tempo
+    dec tempo
 
     .if tempo == 0
         inc acabouGasolina
@@ -469,6 +470,22 @@ Abaixa proc
     ;multiplicar o tempo por 248 e dividir por 1000
     ; somar 272
 
+    xor eax,eax
+    xor ecx, ecx
+
+    mov eax, tempo
+    mov ecx, 248
+    imul ecx
+
+    xor ecx,ecx
+    mov ecx, 500
+
+    div ecx
+
+    add eax, 272
+
+    mov gasPos.x, eax
+
     .if achou == 0
         mov explosaoPos.y,0
         mov explosaoPos.x, -250        
@@ -481,12 +498,29 @@ Abaixa proc
         add fuelPos.y, 2
         inc explosaoPos.y
         xor ecx, ecx
+
         sub esqPos.y, 1
+        .if esqPos.y <= 10
+            mov esqPos.y, 1398
+        .endif
+
         sub dirPos.y, 1
+        .if dirPos.y <= 10
+            mov dirPos.y, 1398
+        .endif
+
     .elseif 
         dec acelera
+
         sub esqPos.y, 10
+        .if esqPos.y <= 10
+            mov esqPos.y, 1398
+        .endif
+
         sub dirPos.y, 10
+        .if dirPos.y <= 10
+            mov dirPos.y, 1398
+        .endif
 
         add heliPos.y, 10
         add barcoPos.y, 10 
@@ -519,7 +553,9 @@ VerificaSeAcertouHeli proc                  ;verificacao se o missel entrou em c
 
     mov eax, balaPos.y                      ;guarda em eax a posicao 'y' da bala
     mov ecx, heliPos.y                      ;guarda em ecx a posicao 'y' do helicoptero
-    sub ecx, eax                            ;subtrai de eax e armazena em ecx
+    sub ecx, eax       
+    
+                         ;subtrai de eax e armazena em ecx
  
     .if ecx <= 20 && ebx <= 20
       ;exibir explosao
@@ -594,7 +630,13 @@ VerificaFuel proc
  
     .if ecx <= 26 && ebx <= 26
       add acelera, 500
-    
+
+      add tempo, 50
+
+      .if tempo > 500
+        mov tempo, 500
+      .endif   
+
       add fuelPos.x,20
 
       .if fuelPos.x>650
@@ -769,7 +811,7 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos d
     ;----------terraDireita
     invoke SelectObject,memDC,hBmp10  ; seleciona o novo bitmap
     mov hOld, eax     
-    INVOKE  TransparentBlt,hDC,dirPos.x,0,160,800,memDC,0,esqPos.y,150,800,CREF_TRANSPARENT  
+    INVOKE  TransparentBlt,hDC,dirPos.x,0,160,800,memDC,0,dirPos.y,150,800,CREF_TRANSPARENT  
 
     ; ----------placar
     invoke SelectObject,memDC,hBmp8  ; seleciona o novo bitmap
@@ -789,7 +831,7 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos d
 
     invoke SelectObject,memDC,hBmp12  ; seleciona o novo bitmap
     mov hOld, eax     
-    INVOKE  TransparentBlt,hDC,520,525,7,20,memDC,0,0,7,20,CREF_TRANSPARENT 
+    INVOKE  TransparentBlt,hDC,gasPos.x,gasPos.y,7,20,memDC,0,0,7,20,CREF_TRANSPARENT 
     ;-------------------------------------------------------
     invoke SelectObject,hDC,hOld
     invoke DeleteDC,memDC
