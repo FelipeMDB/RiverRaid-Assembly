@@ -106,7 +106,8 @@
     atirou    dd 0
     acelera   dd 0
     perdeu    dd 0
-    lRect         RECT <>
+    acabouGasolina dd 0
+    ;lRect         RECT <>
     hitpoint 	    POINT <>
     posicao       POINT <>
     ThreadID 	  dd 0
@@ -147,6 +148,12 @@
 ;CommandLine LPSTR ? 
 hwnd HANDLE ? 
 ;ThreadID DWORD ?
+;RECT STRUCT
+   ; left    DWORD  ?
+    ;top     DWORD  ?
+   ; right   DWORD  ?
+   ; bottom  DWORD  ?
+;RECT ENDS
 
 .const
 	IDM_EXIT equ 1     

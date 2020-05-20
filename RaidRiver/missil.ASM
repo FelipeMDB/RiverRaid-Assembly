@@ -213,6 +213,15 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
     LOCAL Rct    :RECT
     LOCAL hDC    :DWORD
     LOCAL Ps     :PAINTSTRUCT
+    LOCAL Rect   :RECT
+
+    mov Rect.left, 0
+    mov Rect.top, 0
+    mov Rect.bottom, 498
+    mov Rect.right, 1000000
+
+
+  
 
     .if uMsg == WM_COMMAND
 		mov eax,wParam
@@ -286,29 +295,30 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
 		mov eax,lParam
 		shr eax,16
 		mov hitpoint.y,eax
-		invoke InvalidateRect,hWnd,NULL,TRUE
+		;invoke InvalidateRect,hWnd,NULL,TRUE
 
     .elseif uMsg == WM_KEYDOWN
         mov     eax,lParam
         and     eax, 000Fh
-        .if wParam == VK_RIGHT
-            .if aviaoPos.x<650
-                add aviaoPos.x, 10
-            .endif
-            
-        .elseif wParam == VK_LEFT
-           .if aviaoPos.x>158
-                sub aviaoPos.x, 20
-            .endif
-
-        .elseif wParam == VK_UP
-            mov ecx, aviaoPos.x
-            add ecx, 13
-            mov balaPos.x, ecx
-            mov ebx, aviaoPos.y
-            mov balaPos.y, ebx
-            inc atirou
+        
+    .if wParam == VK_RIGHT
+        .if aviaoPos.x<650
+            add aviaoPos.x, 10
         .endif
+        
+    .elseif wParam == VK_LEFT
+        .if aviaoPos.x>158
+            sub aviaoPos.x, 20
+        .endif
+
+    .elseif wParam == VK_UP
+        mov ecx, aviaoPos.x
+        add ecx, 13
+        mov balaPos.x, ecx
+        mov ebx, aviaoPos.y
+        mov balaPos.y, ebx
+        inc atirou
+    .endif
 
      .elseif uMsg == WM_PAINT
         invoke BeginPaint,hWin,ADDR Ps
@@ -321,7 +331,7 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
             sub balaPos.y, 1
         .endif
    .elseif uMsg==WM_FINISH        
-		invoke InvalidateRect,hWnd,NULL,TRUE
+		;invoke InvalidateRect,hWnd,NULL,TRUE
 
     .elseif uMsg==WM_T  
         invoke VerificaSePerdeu         
@@ -341,19 +351,37 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
             mov heliPos.x,162
         .endif
 
-     .elseif uMsg==WM_DOWN                          
-        invoke Abaixa
-
-    invoke InvalidateRect,hWnd,NULL,TRUE
-
-    .elseif perdeu > 0
+     .elseif uMsg==WM_DOWN  
+            invoke Abaixa
+            invoke InvalidateRect,hWnd, addr Rect,TRUE
+                     
+    .if perdeu > 0
+        mov Rect.left, 0
+        mov Rect.top, 0
+        mov Rect.bottom, 0
+        mov Rect.right, 0
+        
+        invoke ExitProcess, 0
         szText msg,"Você foi atingido! Deseja jogar de novo?"
-        invoke MessageBox,hWin,ADDR msg,ADDR szDisplayName,MB_YESNO
-            .if eax == IDNO
+        invoke MessageBox,hWin,ADDR msg,ADDR szDisplayName,MB_OK
+            .if eax == IDOK
                 invoke ExitProcess, 0
-            .elseif
-                invoke ExitProcess, 0   ;AQUI GENTE
             .endif
+        .elseif acabouGasolina > 0
+            mov Rect.left, 10000
+            mov Rect.top, 100000
+            mov Rect.bottom, 1000000
+            mov Rect.right, 10000
+            invoke ExitProcess, 0
+            szText msgG,"Sua gasolina acabou, você perdeu! Deseja jogar de novo?"
+            invoke MessageBox,hWin,ADDR msgG,ADDR szDisplayName,MB_YESNO
+                .if eax == IDNO
+                    invoke ExitProcess, 0
+                .elseif
+                    ;invoke ExitProcess, 0   ;AQUI GENTE
+                .endif
+                
+    .endif
 
     .elseif uMsg == WM_CLOSE
         szText perg,"Tem certeza que deseja sair?"
@@ -383,7 +411,6 @@ TopXY proc wDim:DWORD, sDim:DWORD
     sub sDim, eax    ; sub half win dimension from half screen dimension
 
     return sDim
-
 TopXY endp
 
 ; #########################################################################
@@ -391,8 +418,8 @@ TopXY endp
 Abaixa proc 
     inc tempo
 
-    .if tempo == 100
-        inc perdeu
+    .if tempo == 1000
+        inc acabouGasolina
     .endif
 
     .if achou == 0
@@ -543,6 +570,7 @@ VerificaFuel proc
     sub ecx, eax
  
     .if ecx <= 26 && ebx <= 26
+      sub tempo, 150
       mov achou, 3
       
       ;exibir explosao
@@ -559,7 +587,7 @@ VerificaFuel proc
       .if fuelPos.x>650
         mov fuelPos.x, 200
       .endif
-      mov fuelPos.y, 0      
+        mov fuelPos.y, 0      
     .endif
 
     ret
@@ -587,7 +615,7 @@ VerificaSePerdeu proc
         xor edx, edx
         mov edx, aviaoPos.y
         mov explosaoPos.y, edx
-        ; inc perdeu
+        inc perdeu
     .endif
 
     mov edx, barcoPos.x
@@ -598,7 +626,7 @@ VerificaSePerdeu proc
     mov ecx, barcoPos.y
     sub ecx, eax
  
-    .if ecx <= 16 && ebx <= 16
+    .if ecx <= 20 && ebx <= 20
         xor ecx, ecx
         mov ecx, aviaoPos.x
         mov explosaoPos.x, ecx
@@ -606,7 +634,7 @@ VerificaSePerdeu proc
         xor edx, edx
         mov edx, aviaoPos.y
         mov explosaoPos.y, edx
-        ; inc perdeu
+        inc perdeu
     .endif
 
     ; mov edx, fuelPos.x
@@ -635,25 +663,14 @@ VerificaSePerdeu proc
     ret
 VerificaSePerdeu endp 
 
-Paint_Proc proc hWin:DWORD, hDC:DWORD
+Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos da tela
 
     LOCAL hOld:DWORD
     LOCAL memDC :DWORD
-
-    ;invoke VerificaSeAcertouHeli
   
     invoke CreateCompatibleDC,hDC
     mov memDC, eax
-    
-    ;------------fundo
-    ; mov ecx, exibiu
 
-    ; .if ecx != 1
-    ;     invoke SelectObject,memDC,hBmp3  ; selecionei o novo bitmap
-    ;     mov hOld, eax    
-    ;     INVOKE  TransparentBlt,hDC,0,0,1000,1000,memDC,0,256,32,32,CREF_TRANSPARENT 
-    ;     mov exibiu, 1 
-    ; .endif
   ;----------fuel
     invoke SelectObject,memDC,hBmp7  ; selecionei o novo bitmap
     mov hOld, eax     
@@ -691,7 +708,7 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
     INVOKE  TransparentBlt,hDC,explosaoPos.x, explosaoPos.y,30,23,memDC,0,0,30,23,CREF_TRANSPARENT  
 
     ;----------terraEsquerda
-    ;.IF esqPos.y > 1398
+    ;.if esqPos.y < 30
     ;    mov esqPos.y, 1398
     ;.endif
     invoke SelectObject,memDC,hBmp9  ; seleciona o novo bitmap
@@ -717,13 +734,12 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD
     invoke DeleteDC,memDC
 
     return 0
-
 Paint_Proc endp
 
 ; ########################################################################
 
 
-ThreadProc PROC USES ecx Param:DWORD
+ThreadProc PROC USES ecx Param:DWORD  ;Thread executada para desenhar o bitmap do avião
 
     invoke WaitForSingleObject,hEventStart,100000 ;INFINITE
 
@@ -741,7 +757,7 @@ ThreadProc PROC USES ecx Param:DWORD
     ret
 ThreadProc ENDP
 
-ThreadBarcoProc PROC USES ecx Param:DWORD                      
+ThreadBarcoProc PROC USES ecx Param:DWORD     ;Thread executada para desenhar o bitmap do barco                 
 
     invoke WaitForSingleObject,hEventStart,20 ;INFINITE
 
@@ -755,7 +771,7 @@ ThreadBarcoProc PROC USES ecx Param:DWORD
     ret
 ThreadBarcoProc ENDP
 
-ThreadHeliProc PROC USES ecx Param:DWORD                      
+ThreadHeliProc PROC USES ecx Param:DWORD     ;Thread executada para desenhar o bitmap do helicopero                 
 
     invoke WaitForSingleObject,hEventStart,20 ;INFINITE
     
@@ -769,7 +785,7 @@ ThreadHeliProc PROC USES ecx Param:DWORD
     ret
 ThreadHeliProc ENDP
 
-ThreadBalaProc PROC USES ecx Param:DWORD                      
+ThreadBalaProc PROC USES ecx Param:DWORD     ;Thread executada para desenhar o bitmap d  bala, a cada 1 segundo, para ser rápida  (a cada um segundo ela é desenhada em sua posição, que muda constantemente quando o avião atira)                
 
     invoke WaitForSingleObject,hEventStart,1 ;INFINITE
 
@@ -783,7 +799,7 @@ ThreadBalaProc PROC USES ecx Param:DWORD
     ret
 ThreadBalaProc ENDP
 
-ThreadDownProc PROC USES ecx Param:DWORD                      
+ThreadDownProc PROC USES ecx Param:DWORD     ;Thread executada para desenhar o ambiente, como todos os seus elementos exceto o avião, sempre mais "para baixo", criando a impressão que o avião está ind para frente               
 
     invoke WaitForSingleObject,hEventStart,80       ;INFINITE
 
