@@ -15,6 +15,7 @@
     esquerda         equ        109  ; ...
     direita          equ        110  ; ...
     gasometro        equ        111  ; ...
+    gas              equ        112  ; ...
 
 	CREF_TRANSPARENT  EQU 0FF00FFh
 	CREF_TRANSPARENT2 EQU 0FF0000h
@@ -111,12 +112,22 @@ start:
     invoke GetCommandLine                           ; ...
     mov CommandLine, eax                            ; ...
     ;--------------------------------------------
-     xor eax, eax                                    ; ...
+    xor eax, eax                                    ; ...
     invoke GetModuleHandle, NULL                    ; ...
     mov hInstance11, eax                            ; ...
  
     invoke LoadBitmap,hInstance11, gasometro          ; ...
     mov hBmp11, eax                                 ; ...
+
+    invoke GetCommandLine                           ; ...
+    mov CommandLine, eax                            ; ...
+    ;--------------------------------------------
+    xor eax, eax                                    ; ...
+    invoke GetModuleHandle, NULL                    ; ...
+    mov hInstance12, eax                            ; ...
+ 
+    invoke LoadBitmap,hInstance12, gas              ; ...
+    mov hBmp12, eax                                 ; ...
 
     invoke GetCommandLine                           ; ...
     mov CommandLine, eax                            ; ...
@@ -248,8 +259,13 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
         mov esqPos.x, 0
         mov esqPos.y, 1398
 
-        mov dirPos.x,680
-        mov dirPos.y,1398
+        mov dirPos.x, 680
+        mov dirPos.y, 1398
+
+        mov gasPos.x, 272
+        mov gasPos.y, 525
+
+        mov tempo, 1000
 
 		
 		invoke CreateEvent,NULL,FALSE,FALSE,NULL
@@ -418,9 +434,17 @@ TopXY endp
 Abaixa proc 
     inc tempo
 
-    .if tempo == 1000
+    .if tempo == 0
         inc acabouGasolina
     .endif
+
+    ;0->    272
+    ;1000-> 520
+    ;248
+    ; 248    -  1000
+    ; pos x  -  tempo 
+    ;multiplicar o tempo por 248 e dividir por 1000
+    ; somar 272
 
     .if achou == 0
         mov explosaoPos.y,0
@@ -718,7 +742,7 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos d
     ;----------terraDireita
     invoke SelectObject,memDC,hBmp10  ; seleciona o novo bitmap
     mov hOld, eax     
-    INVOKE  TransparentBlt,hDC,dirPos.x,0,150,800,memDC,0,esqPos.y,150,800,CREF_TRANSPARENT  
+    INVOKE  TransparentBlt,hDC,dirPos.x,0,160,800,memDC,0,esqPos.y,150,800,CREF_TRANSPARENT  
 
     ; ----------placar
     invoke SelectObject,memDC,hBmp8  ; seleciona o novo bitmap
@@ -728,7 +752,17 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos d
     ; ----------gasometro
     invoke SelectObject,memDC,hBmp11  ; seleciona o novo bitmap
     mov hOld, eax     
-    INVOKE  TransparentBlt,hDC,0,492,100,20,memDC,0,0,600,148,CREF_TRANSPARENT 
+    INVOKE  TransparentBlt,hDC,250,520,300,65,memDC,0,0,600,130,CREF_TRANSPARENT 
+
+    ; ----------gas
+
+    ;272 - E => vazio
+    ;400 - 1/2 => metade
+    ;520 - F => cheio
+
+    invoke SelectObject,memDC,hBmp12  ; seleciona o novo bitmap
+    mov hOld, eax     
+    INVOKE  TransparentBlt,hDC,520,525,7,20,memDC,0,0,7,20,CREF_TRANSPARENT 
     ;-------------------------------------------------------
     invoke SelectObject,hDC,hOld
     invoke DeleteDC,memDC

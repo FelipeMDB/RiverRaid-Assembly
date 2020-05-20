@@ -84,6 +84,7 @@
     hInstance9    dd 0
     hInstance10   dd 0
     hInstance11   dd 0
+    hInstance12   dd 0
 
     hIcon         dd 0
 
@@ -98,6 +99,7 @@
     hBmp9         dd 0   
     hBmp10        dd 0   
 	  hBmp11        dd 0   
+	  hBmp12        dd 0   
 
     memDC2        DWORD 0 
     x	 		  dd 0
@@ -125,6 +127,7 @@
     explosaoPos POINT <>
     esqPos      POINT <>
     dirPos      POINT <>
+    gasPos      POINT <>
 
     hThreadDown 	 dd 0
     ThreadDownID  dd 0
