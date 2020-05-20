@@ -356,10 +356,10 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
             invoke InvalidateRect,hWnd, addr Rect,TRUE
                      
     .if perdeu > 0
-        mov Rect.left, 45000
-        mov Rect.top, 978970
-        mov Rect.bottom, 8979780
-        mov Rect.right, 987970
+        mov Rect.left, 0
+        mov Rect.top, 0
+        mov Rect.bottom, 0
+        mov Rect.right, 0
         
         invoke ExitProcess, 0
         szText msg,"Você foi atingido! Deseja jogar de novo?"
@@ -708,6 +708,9 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos d
     INVOKE  TransparentBlt,hDC,explosaoPos.x, explosaoPos.y,30,23,memDC,0,0,30,23,CREF_TRANSPARENT  
 
     ;----------terraEsquerda
+    ;.if esqPos.y < 30
+    ;    mov esqPos.y, 1398
+    ;.endif
     invoke SelectObject,memDC,hBmp9  ; seleciona o novo bitmap
     mov hOld, eax     
     INVOKE  TransparentBlt,hDC, 0,esqPos.x, 142,800,memDC,0,esqPos.y,142,800,CREF_TRANSPARENT  
