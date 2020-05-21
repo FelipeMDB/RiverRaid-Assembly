@@ -244,8 +244,7 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
 		mov aviaoPos.y, 450                    
 		mov aviaoPos.x, 370  
 
-        mov sera, 0   
-               
+        mov sera, 0                 
 
         mov barcoPos.y, 80
 		mov barcoPos.x, 100
@@ -353,6 +352,7 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
 		 .if atirou >= 1
             sub balaPos.y, 1
         .endif
+
    .elseif uMsg==WM_FINISH        
 		;invoke InvalidateRect,hWnd,NULL,TRUE
 
@@ -394,7 +394,7 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
             mov sera, 2
             ;mov Rect.bottom, 0
             ;mov Rect.right, 0
-            ;invoke verifica, hWin 
+            invoke verifica, hWin 
         .endif    
     .endif
 
@@ -425,8 +425,9 @@ verifica proc hWin:DWORD ;Procedimento chamado quando o usuário perdeu, pergunt
                 .elseif                       ;se o usuário escolheu jogar novamente
                     mov perdeu, 0
                     mov acabouGasolina, 0
+                    mov tempo, 500
+                    ;invoke WndProc, NULL, NULL, NULL, NULL ;chama o procedimento que cria a janela novamente, recomeçando o jogo
                     
-                    invoke WinMain, NULL, NULL, NULL, NULL ;chama o procedimento que cria a janela novamente, recomeçando o jogo
                 .endif                        ;determina que o if acabou
         .elseif acabouGasolina > 0            ;verifica se perdeu porque a gasolina acabou
             szText msgG,"Sua gasolina acabou, voce perdeu! Deseja jogar de novo?"  ;cria a variavel contendo o texto que será a mensagem
@@ -436,7 +437,8 @@ verifica proc hWin:DWORD ;Procedimento chamado quando o usuário perdeu, pergunt
                 .elseif                       ;se o usuário escolheu jogar novamente
                     mov perdeu, 0
                     mov acabouGasolina, 0
-                    invoke WinMain, NULL, NULL, NULL, NULL ;chama o procedimento que cria a janela novamente, recomeçando o jogo   
+                    ;mov tempo, 500
+                    ;invoke WinMain, NULL, NULL, NULL, NULL ;chama o procedimento que cria a janela novamente, recomeçando o jogo   
                 .endif                        ;determina que o if acabou
         .endif                                ;determina que o if acabou
 verifica endp                                 ;fim da definição do procedimento
@@ -456,11 +458,13 @@ TopXY endp
 ; #########################################################################
 
 Abaixa proc 
-    dec tempo
-
-    .if tempo == 0
-        inc acabouGasolina
+    .if tempo > 0
+        dec tempo
     .endif
+
+    .if tempo == 1
+        inc acabouGasolina
+    .elseif
 
     ;0->    272
     ;1000-> 520
@@ -499,32 +503,35 @@ Abaixa proc
         inc explosaoPos.y
         xor ecx, ecx
 
-        sub esqPos.y, 1
+        sub esqPos.y, 2
         .if esqPos.y <= 10
             mov esqPos.y, 1398
         .endif
 
-        sub dirPos.y, 1
+        sub dirPos.y, 2
         .if dirPos.y <= 10
             mov dirPos.y, 1398
         .endif
 
-    .elseif 
+    .elseif         
+        xor ebx, ebx
+        mov ebx, count
+
         dec acelera
 
-        sub esqPos.y, 10
+        sub esqPos.y, ebx
         .if esqPos.y <= 10
             mov esqPos.y, 1398
         .endif
 
-        sub dirPos.y, 10
+        sub dirPos.y, ebx
         .if dirPos.y <= 10
             mov dirPos.y, 1398
         .endif
 
-        add heliPos.y, 10
-        add barcoPos.y, 10 
-        add fuelPos.y, 10
+        add heliPos.y, ebx
+        add barcoPos.y, ebx 
+        add fuelPos.y, ebx
         xor ecx, ecx    
     .endif
 
@@ -538,6 +545,7 @@ Abaixa proc
     
     .if fuelPos.y > 485
         mov fuelPos.y, 0
+    .endif
     .endif
 Abaixa ENDP
 
@@ -557,7 +565,7 @@ VerificaSeAcertouHeli proc                  ;verificacao se o missel entrou em c
     
                          ;subtrai de eax e armazena em ecx
  
-    .if ecx <= 20 && ebx <= 20
+    .if ecx <= 35 && ebx <= 35
       ;exibir explosao
       mov achou, 3
       xor ecx, ecx
@@ -629,7 +637,8 @@ VerificaFuel proc
     sub ecx, eax
  
     .if ecx <= 26 && ebx <= 26
-      add acelera, 500
+      add acelera, 45
+      mov count, 12
 
       add tempo, 50
 
@@ -788,10 +797,10 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos d
             invoke SelectObject,memDC,hBmp5  ; selecionei o novo bitmap
             mov hOld, eax     
             INVOKE  TransparentBlt,hDC,balaPos.x,balaPos.y,10,19,memDC,0,0,10,19,CREF_TRANSPARENT 
-            sub balaPos.y, 25
-            INVOKE  TransparentBlt,hDC,balaPos.x,balaPos.y,10,19,memDC,0,0,10,19,CREF_TRANSPARENT 
-            sub balaPos.y, 23
-            INVOKE  TransparentBlt,hDC,balaPos.x,balaPos.y,10,19,memDC,0,0,10,19,CREF_TRANSPARENT 
+            ;sub balaPos.y, 25
+            ;INVOKE  TransparentBlt,hDC,balaPos.x,balaPos.y,10,19,memDC,0,0,10,19,CREF_TRANSPARENT 
+            ;sub balaPos.y, 23
+            ;INVOKE  TransparentBlt,hDC,balaPos.x,balaPos.y,10,19,memDC,0,0,10,19,CREF_TRANSPARENT 
         .endif
     .endif
 
