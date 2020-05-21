@@ -255,7 +255,7 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
 		mov heliPos.x, 20
 
         mov heliDoisPos.y, 100
-		mov heliDoisPos.x, -10
+		mov heliDoisPos.x, 656
 
         mov fuelPos.y, 0
         mov fuelPos.x, 250
@@ -382,14 +382,14 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
         invoke VerificaSeAcertouHeli
         invoke VerificaSeAcertouHeliDois
         inc heliPos.x
-        inc heliDoisPos.x
+        dec heliDoisPos.x
 
         .if heliPos.x > 655
             mov heliPos.x,162
         .endif
 
-        .if heliDoisPos.x > 655
-            mov heliDoisPos.x,162
+        .if heliDoisPos.x < 10
+            mov heliDoisPos.x,670
         .endif
 
      .elseif uMsg==WM_DOWN  
@@ -619,7 +619,7 @@ VerificaSeAcertouHeliDois proc                  ;verificacao se o missel entrou 
     xor edx, edx
     mov edx, heliDoisPos.y
     mov explosaoPos.y, edx
-    mov heliDoisPos.x, 0      
+    mov heliDoisPos.x, 660     
     mov balaPos.x, -20                      ;'apaga' a bala pois ela acertou o alvo
     .endif
     ret
@@ -711,7 +711,7 @@ VerificaFuel proc
     mov ecx, fuelPos.y
     sub ecx, eax
  
-    .if ecx <= 26 && ebx <= 26
+    .if ecx <= 26 && ebx <= 46
       add acelera, 28
 
       add tempo, 50
@@ -910,9 +910,6 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos d
     INVOKE  TransparentBlt,hDC,explosaoPos.x, explosaoPos.y,30,23,memDC,0,0,30,23,CREF_TRANSPARENT  
 
     ;----------terraEsquerda
-    ;.if esqPos.y < 30
-    ;    mov esqPos.y, 1398
-    ;.endif
     invoke SelectObject,memDC,hBmp9  ; seleciona o novo bitmap
     mov hOld, eax     
     INVOKE  TransparentBlt,hDC, 0,esqPos.x, 142,800,memDC,0,esqPos.y,142,800,CREF_TRANSPARENT  
