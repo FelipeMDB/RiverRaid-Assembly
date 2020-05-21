@@ -117,7 +117,7 @@ start:                     ;método para iniciar o programa, sempre é o primeir
     invoke GetModuleHandle, NULL                    ; ...
     mov hInstance11, eax                            ; ...
  
-    invoke LoadBitmap,hInstance11, gasometro          ; ...
+    invoke LoadBitmap,hInstance11, gasometro        ; ...
     mov hBmp11, eax                                 ; ...
 
     invoke GetCommandLine                           ; ...
@@ -223,7 +223,6 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
     LOCAL var    :DWORD
     LOCAL caW    :DWORD
     LOCAL caH    :DWORD
-    LOCAL Rct    :RECT
     LOCAL hDC    :DWORD
     LOCAL Ps     :PAINTSTRUCT
     LOCAL Rect   :RECT
@@ -249,8 +248,14 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
         mov barcoPos.y, 80
 		mov barcoPos.x, 100
 
+        mov barcoDoisPos.y, 400
+		mov barcoDoisPos.x, 10
+
         mov heliPos.y, 300
 		mov heliPos.x, 20
+
+        mov heliDoisPos.y, 100
+		mov heliDoisPos.x, -10
 
         mov fuelPos.y, 0
         mov fuelPos.x, 250
@@ -333,7 +338,7 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
             sub aviaoPos.x, 20
         .endif
 
-    .elseif wParam == VK_UP
+    .elseif wParam == VK_UP 
         mov ecx, aviaoPos.x
         add ecx, 13
         mov balaPos.x, ecx
@@ -359,43 +364,46 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
     .elseif uMsg==WM_T  
         invoke VerificaSePerdeu         
         invoke VerificaSeAcertouBarco
+        invoke VerificaSeAcertouBarcoDois
         inc barcoPos.x
         
         .if barcoPos.x > 655
             mov barcoPos.x,162
-        .endif     
+        .endif  
+
+        inc barcoDoisPos.x
+        
+        .if barcoDoisPos.x > 655
+            mov barcoDoisPos.x,162
+        .endif    
 
     ;.elseif uMsg==WM_HELI
         invoke VerificaFuel
         invoke VerificaSeAcertouHeli
+        invoke VerificaSeAcertouHeliDois
         inc heliPos.x
+        inc heliDoisPos.x
 
         .if heliPos.x > 655
             mov heliPos.x,162
+        .endif
+
+        .if heliDoisPos.x > 655
+            mov heliDoisPos.x,162
         .endif
 
      .elseif uMsg==WM_DOWN  
             invoke Abaixa
             invoke InvalidateRect,hWnd, addr Rect,TRUE
                      
-    .if perdeu > 0      
-        .if sera == 0
-            mov sera, 2 
-            ;mov Rect.bottom, 0
-            ;mov Rect.right, 0
-            ;invoke InvalidateRect,hWnd, addr Rect,TRUE
-            invoke verifica, hWin              
+        
+    .if sera == 0
+        .if perdeu > 0  || acabouGasolina > 0
+        ;mov Rect.bottom, 0
+        ;mov Rect.right, 0
+        ;invoke InvalidateRect,hWnd, addr Rect,TRUE
+        invoke verifica, hWin         
         .endif
-    .endif
-    
-
-    .if acabouGasolina > 0
-        .if sera == 0
-            mov sera, 2
-            ;mov Rect.bottom, 0
-            ;mov Rect.right, 0
-            invoke verifica, hWin 
-        .endif    
     .endif
 
     .elseif uMsg == WM_CLOSE
@@ -411,36 +419,28 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
     .endif
 
     invoke DefWindowProc,hWin,uMsg,wParam,lParam
-
     ret
 WndProc endp
 
 verifica proc hWin:DWORD ;Procedimento chamado quando o usuário perdeu, pergunta se ele quer jogar novamente ou sair
-        
+       
+        mov sera, 2 
         .if perdeu > 0                                            ;verifica se perdeu porque foi atingido por um obstáculo
             szText msg,"Voce foi atingido! Deseja jogar de novo?" ;cria a variavel contendo o texto que será a mensagem
             invoke MessageBox,hWin,ADDR msg,ADDR szDisplayName,MB_YESNO  ;cria a message box, do tipo de resposta SIM ou NAO, com o texto criado acima
-                .if eax == IDNO               ;se o usuário escolheu sair
-                    invoke ExitProcess, 0     ;abortamos o programa, terminamos a execução
-                .elseif                       ;se o usuário escolheu jogar novamente
-                    mov perdeu, 0
-                    mov acabouGasolina, 0
-                    mov tempo, 500
-                    ;invoke WndProc, NULL, NULL, NULL, NULL ;chama o procedimento que cria a janela novamente, recomeçando o jogo
-                    
-                .endif                        ;determina que o if acabou
-        .elseif acabouGasolina > 0            ;verifica se perdeu porque a gasolina acabou
+        .elseif
             szText msgG,"Sua gasolina acabou, voce perdeu! Deseja jogar de novo?"  ;cria a variavel contendo o texto que será a mensagem
-            invoke MessageBox,hWin,ADDR msgG,ADDR szDisplayName,MB_YESNO           ;cria a message box, do tipo de resposta SIM ou NAO, com o texto criado acima
-                .if eax == IDNO               ;se o usuário escolheu sair
-                    invoke ExitProcess, 0     ;abortamos o programa, terminamos a execução
-                .elseif                       ;se o usuário escolheu jogar novamente
-                    mov perdeu, 0
-                    mov acabouGasolina, 0
-                    ;mov tempo, 500
-                    ;invoke WinMain, NULL, NULL, NULL, NULL ;chama o procedimento que cria a janela novamente, recomeçando o jogo   
-                .endif                        ;determina que o if acabou
-        .endif                                ;determina que o if acabou
+            invoke MessageBox,hWin,ADDR msgG,ADDR szDisplayName,MB_YESNO  ;cria a message box, do tipo de resposta SIM ou NAO, com o texto criado acima
+        .endif  
+        
+        .if eax == IDNO               ;se o usuário escolheu sair
+            invoke ExitProcess, 0     ;abortamos o programa, terminamos a execução
+        .elseif                       ;se o usuário escolheu jogar novamente
+            mov perdeu, 0
+            mov acabouGasolina, 0
+            mov tempo, 500
+            ;invoke WndProc, NULL, NULL, NULL, NULL ;chama o procedimento que cria a janela novamente, recomeçando o jogo          
+        .endif                        ;determina que o if acabou
 verifica endp                                 ;fim da definição do procedimento
 
 ; ########################################################################
@@ -498,7 +498,9 @@ Abaixa proc
 
     .if acelera == 0        
         inc heliPos.y
+        inc heliDoisPos.y
         inc barcoPos.y 
+        inc barcoDoisPos.y 
         add fuelPos.y, 2
         inc explosaoPos.y
         xor ecx, ecx
@@ -515,9 +517,9 @@ Abaixa proc
 
     .elseif         
         xor ebx, ebx
-        mov ebx, count
-
-        dec acelera
+        mov ebx, acelera
+        
+        dec acelera        ;18173
 
         sub esqPos.y, ebx
         .if esqPos.y <= 10
@@ -530,7 +532,9 @@ Abaixa proc
         .endif
 
         add heliPos.y, ebx
+        add heliDoisPos.y, ebx
         add barcoPos.y, ebx 
+        add barcoDoisPos.y, ebx 
         add fuelPos.y, ebx
         xor ecx, ecx    
     .endif
@@ -539,8 +543,16 @@ Abaixa proc
         mov barcoPos.y,0
     .endif 
 
+    .if barcoDoisPos.y > 465
+        mov barcoDoisPos.y,0
+    .endif
+
     .if heliPos.y > 465
         mov heliPos.y, 0
+    .endif
+
+    .if heliDoisPos.y > 465
+        mov heliDoisPos.y, 0
     .endif
     
     .if fuelPos.y > 485
@@ -564,27 +576,54 @@ VerificaSeAcertouHeli proc                  ;verificacao se o missel entrou em c
     sub ecx, eax       
     
                          ;subtrai de eax e armazena em ecx
- 
+    
     .if ecx <= 35 && ebx <= 35
-      ;exibir explosao
-      mov achou, 3
-      xor ecx, ecx
-      mov ecx, heliPos.x
-      mov explosaoPos.x, ecx
-
-      xor edx, edx
-      mov edx, heliPos.y
-      mov explosaoPos.y, edx
-      mov heliPos.x, 0      
-      mov balaPos.x, -20                      ;'apaga' a bala pois ela acertou o alvo
-    .endif
+    ;exibir explosao
+    mov achou, 3
+    xor ecx, ecx
+    mov ecx, heliPos.x
+    mov explosaoPos.x, ecx
 
     xor edx, edx
+    mov edx, heliPos.y
+    mov explosaoPos.y, edx
+    mov heliPos.x, 0      
+    mov balaPos.x, -20                      ;'apaga' a bala pois ela acertou o alvo
+    .endif
+    ret
+VerificaSeAcertouHeli endp  
+
+VerificaSeAcertouHeliDois proc                  ;verificacao se o missel entrou em contato com helicoptero
+    xor edx, edx                            ;limpa os registradores 
     xor ebx, ebx
     xor ecx, ecx
     xor eax, eax
+    
+    mov edx, heliDoisPos.x                      ;guarda em edx a posicao 'x' do helicoptero
+    mov ebx, balaPos.x                      ;guarda em ebx a posicao x da bala
+    sub ebx, edx                            ;subtrai de ebx e armazena em edx
+
+    mov eax, balaPos.y                      ;guarda em eax a posicao 'y' da bala
+    mov ecx, heliDoisPos.y                      ;guarda em ecx a posicao 'y' do helicoptero
+    sub ecx, eax       
+    
+                         ;subtrai de eax e armazena em ecx
+    
+    .if ecx <= 35 && ebx <= 35
+    ;exibir explosao
+    mov achou, 3
+    xor ecx, ecx
+    mov ecx, heliDoisPos.x
+    mov explosaoPos.x, ecx
+
+    xor edx, edx
+    mov edx, heliDoisPos.y
+    mov explosaoPos.y, edx
+    mov heliDoisPos.x, 0      
+    mov balaPos.x, -20                      ;'apaga' a bala pois ela acertou o alvo
+    .endif
     ret
-VerificaSeAcertouHeli endp  
+VerificaSeAcertouHeliDois endp 
 
 VerificaSeAcertouBarco proc 
     xor edx, edx
@@ -622,6 +661,42 @@ VerificaSeAcertouBarco proc
     ret
 VerificaSeAcertouBarco endp 
 
+VerificaSeAcertouBarcoDois proc 
+    xor edx, edx
+    xor ebx, ebx
+    xor ecx, ecx
+    xor eax, eax
+
+    mov edx, barcoDoisPos.x
+    mov ebx, balaPos.x
+    sub ebx, edx
+
+    mov eax, balaPos.y
+    mov ecx, barcoDoisPos.y
+    sub ecx, eax
+ 
+    .if ecx <= 40 && ebx <= 40
+       ;exibir explosao
+       mov achou, 3
+      xor ecx, ecx
+      mov ecx, barcoDoisPos.x
+      mov explosaoPos.x, ecx
+
+      xor edx, edx
+      mov edx, barcoDoisPos.y
+      mov explosaoPos.y, edx
+      mov barcoDoisPos.x, 0  
+      mov balaPos.x, -20                      ;'apaga' a bala pois ela acertou o alvo
+          
+    .endif
+
+    xor edx, edx
+    xor ebx, ebx
+    xor ecx, ecx
+    xor eax, eax
+    ret
+VerificaSeAcertouBarcoDois endp 
+
 VerificaFuel proc 
     xor edx, edx
     xor ebx, ebx
@@ -637,8 +712,7 @@ VerificaFuel proc
     sub ecx, eax
  
     .if ecx <= 26 && ebx <= 26
-      add acelera, 45
-      mov count, 12
+      add acelera, 28
 
       add tempo, 50
 
@@ -704,17 +778,21 @@ VerificaSePerdeu proc
     mov eax, aviaoPos.y
     mov ecx, heliPos.y
     sub ecx, eax
- 
     .if ecx <= 20 && ebx <= 20
-        xor ecx, ecx
-        mov ecx, aviaoPos.x
-        mov explosaoPos.x, ecx
+                xor ecx, ecx
+                mov ecx, aviaoPos.x
+                mov explosaoPos.x, ecx
 
-        xor edx, edx
-        mov edx, aviaoPos.y
-        mov explosaoPos.y, edx
-        inc perdeu
+                xor edx, edx
+                mov edx, aviaoPos.y
+                mov explosaoPos.y, edx
+                inc perdeu
     .endif
+
+    xor edx, edx
+    xor ebx, ebx
+    xor ecx, ecx
+    xor eax, eax
 
     mov edx, barcoPos.x
     mov ebx, aviaoPos.x
@@ -723,41 +801,63 @@ VerificaSePerdeu proc
     mov eax, aviaoPos.y
     mov ecx, barcoPos.y
     sub ecx, eax
- 
-    .if ecx <= 20 && ebx <= 20
-        xor ecx, ecx
-        mov ecx, aviaoPos.x
-        mov explosaoPos.x, ecx
+     .if ecx <= 20 && ebx <= 20
+                xor ecx, ecx
+                mov ecx, aviaoPos.x
+                mov explosaoPos.x, ecx
 
-        xor edx, edx
-        mov edx, aviaoPos.y
-        mov explosaoPos.y, edx
-        inc perdeu
+                xor edx, edx
+                mov edx, aviaoPos.y
+                mov explosaoPos.y, edx
+                inc perdeu
     .endif
-
-    ; mov edx, fuelPos.x
-    ; mov ebx, aviaoPos.x
-    ; sub ebx, edx
-
-    ; mov eax, fuelPos.y
-    ; mov ecx, barcoPos.y
-    ; sub ecx, eax
- 
-    ; .if ecx <= 16 && ebx <= 16
-    ;     xor ecx, ecx
-    ;     mov ecx, aviaoPos.x
-    ;     mov explosaoPos.x, ecx
-
-    ;     xor edx, edx
-    ;     mov edx, aviaoPos.y
-    ;     mov explosaoPos.y, edx
-    ;     inc perdeu
-    ; .endif
 
     xor edx, edx
     xor ebx, ebx
     xor ecx, ecx
     xor eax, eax
+
+    mov edx, heliDoisPos.x
+    mov ebx, aviaoPos.x
+    sub ebx, edx
+
+    mov eax, aviaoPos.y
+    mov ecx, heliDoisPos.y
+    sub ecx, eax
+     .if ecx <= 20 && ebx <= 20
+                xor ecx, ecx
+                mov ecx, aviaoPos.x
+                mov explosaoPos.x, ecx
+
+                xor edx, edx
+                mov edx, aviaoPos.y
+                mov explosaoPos.y, edx
+                inc perdeu
+    .endif
+
+    xor edx, edx
+    xor ebx, ebx
+    xor ecx, ecx
+    xor eax, eax
+
+    mov edx, barcoDoisPos.x
+    mov ebx, aviaoPos.x
+    sub ebx, edx
+
+    mov eax, aviaoPos.y
+    mov ecx, barcoDoisPos.y
+    sub ecx, eax
+     .if ecx <= 20 && ebx <= 20
+                xor ecx, ecx
+                mov ecx, aviaoPos.x
+                mov explosaoPos.x, ecx
+
+                xor edx, edx
+                mov edx, aviaoPos.y
+                mov explosaoPos.y, edx
+                inc perdeu
+    .endif
+
     ret
 VerificaSePerdeu endp 
 
@@ -783,12 +883,12 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos d
     invoke SelectObject,memDC,hBmp2  ; selecionei o novo bitmap
     mov hOld, eax     
     INVOKE  TransparentBlt,hDC,heliPos.x,heliPos.y,32,23,memDC,0,0,32,23,CREF_TRANSPARENT    
-
+    INVOKE  TransparentBlt,hDC,heliDoisPos.x,heliDoisPos.y,32,23,memDC,0,0,32,23,CREF_TRANSPARENT    
     ;----------barco
     invoke SelectObject,memDC,hBmp4  ; selecionei o novo bitmap
     mov hOld, eax     
     INVOKE  TransparentBlt,hDC,barcoPos.x,barcoPos.y,35,18,memDC,0,0,35,18,CREF_TRANSPARENT 
-
+    INVOKE  TransparentBlt,hDC,barcoDoisPos.x,barcoDoisPos.y,35,18,memDC,0,0,35,18,CREF_TRANSPARENT 
     ;----------bala
     .if atirou > 0
         .if balaPos.y <= 0

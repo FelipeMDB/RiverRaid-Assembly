@@ -43,7 +43,9 @@
     FillBuffer   PROTO :DWORD,:DWORD,:BYTE
     Paint_Proc   PROTO :DWORD,:DWORD
     VerificaSeAcertouHeli PROTO 
+    VerificaSeAcertouHeliDois PROTO
     VerificaSeAcertouBarco PROTO 
+    VerificaSeAcertouBarcoDois PROTO
     VerificaFuel PROTO 
     Abaixa PROTO
     VerificaSePerdeu PROTO
@@ -112,7 +114,6 @@
     count dd 0
     sera  dd 0
     acabouGasolina dd 0
-    ;lRect         RECT <>
     hitpoint 	    POINT <>
     posicao       POINT <>
     ThreadID 	  dd 0
@@ -125,6 +126,9 @@
     aviaoPos     POINT <>
 
     balaPos     POINT <>
+    heliPos 	  POINT <>
+    heliDoisPos 	  POINT <>
+    barcoDoisPos 	  POINT <>
     barcoPos 	  POINT <>
     fuelPos     POINT <>
     explosaoPos POINT <>
@@ -138,7 +142,6 @@
     hThreadBarco	  dd 0
     ThreadBarcoID  dd 0
 
-    heliPos 	  POINT <>
     hThreadHeli	  dd 0
     ThreadHeliID  dd 0
 
