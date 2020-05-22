@@ -2,6 +2,8 @@
     .model flat, stdcall  ; 32 bit memory model
     option casemap :none  ; case sensitive
     include bitblt.inc    ; local includes for this file
+	include \Masm32\include\winmm.inc 
+    includelib \Masm32\lib\winmm.lib
 
 	;código de link para imagem no arquivo RC
 	aviao		     equ		101  ;respectivamente: nome do bitmap, operando usado para definir constantes, código definido no arquivo RSRC.rc para identificação de cada imagem
@@ -49,7 +51,13 @@
     FileName4       db "04laser_shot.wav",0
     FileName5       db "05victory.wav",0
 
-    Play	  db "05victory.wav",0		; Sound file
+    Play0	  db "00explosion_8bits.wav",0		; Sound file
+    Play1	  db "01explosion_8bits_versao2.wav",0		; Sound file
+    Play2	  db "02explosion_nave.wav",0		; Sound file
+    Play3	  db "03game_over.wav",0		; Sound file
+    Play4	  db "04laser_shot.wav",0		; Sound file
+    Play5	  db "05victory.wav",0		; Sound file
+    somDeTiro db 0
 
     ; - MCI_OPEN_PARMS Structure ( API=mciSendCommand ) -
     open_dwCallback     dd ?
@@ -279,7 +287,10 @@ WinMain endp
 
 ; #########################################################################
 
-WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
+WndProc proc hWin   :DWORD,
+             uMsg   :DWORD, 
+             wParam :DWORD, 
+             lParam :DWORD
 
     LOCAL var    :DWORD
     LOCAL caW    :DWORD
@@ -399,12 +410,17 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
         .endif
 
     .elseif wParam == VK_UP 
+        inc somDeTiro
+        .if somDeTiro == 1
+            invoke PlaySound, ADDR Play4, NULL, SND_FILENAME or SND_ASYNC ; SOM DA BALA
+        .endif
         mov ecx, aviaoPos.x
         add ecx, 13
         mov balaPos.x, ecx
         mov ebx, aviaoPos.y
         mov balaPos.y, ebx
         inc atirou
+        dec somDeTiro
     .endif
 
      .elseif uMsg == WM_PAINT
@@ -486,6 +502,7 @@ verifica proc hWin:DWORD,uMsg:DWORD,wParam:DWORD,lParam:DWORD ;Procedimento cham
        
         mov sera, 2 
         .if perdeu > 0                                            ;verifica se perdeu porque foi atingido por um obstáculo
+            invoke PlaySound, ADDR Play3, NULL, SND_FILENAME or SND_ASYNC ; SOM DE DERROTA
             szText msg,"Voce foi atingido! Deseja jogar de novo?" ;cria a variavel contendo o texto que será a mensagem
             invoke MessageBox,hWin,ADDR msg,ADDR szDisplayName,MB_YESNO  ;cria a message box, do tipo de resposta SIM ou NAO, com o texto criado acima
             .if eax == IDNO               ;se o usuário escolheu sair
@@ -499,6 +516,7 @@ verifica proc hWin:DWORD,uMsg:DWORD,wParam:DWORD,lParam:DWORD ;Procedimento cham
                 invoke WinMain, hWin,uMsg,wParam,lParam
             .endif 
         .elseif
+            invoke PlaySound, ADDR Play3, NULL, SND_FILENAME or SND_ASYNC ; SOM DE DERROTA
             szText msgG,"Sua gasolina acabou, voce perdeu! Deseja jogar de novo?"  ;cria a variavel contendo o texto que será a mensagem
             invoke MessageBox,hWin,ADDR msgG,ADDR szDisplayName,MB_YESNO  ;cria a message box, do tipo de resposta SIM ou NAO, com o texto criado acima
             .if eax == IDNO               ;se o usuário escolheu sair
@@ -666,6 +684,7 @@ VerificaSeAcertouHeli proc                  ;verificacao se o missel entrou em c
     mov explosaoPos.y, edx
     mov heliPos.x, 0      
     mov balaPos.x, -20                      ;'apaga' a bala pois ela acertou o alvo
+    invoke PlaySound, ADDR Play1, NULL, SND_FILENAME or SND_ASYNC ; SOM DE EXPLOSAO DO HELICOPTERO
     .endif
     ret
 VerificaSeAcertouHeli endp  
@@ -698,6 +717,7 @@ VerificaSeAcertouHeliDois proc                  ;verificacao se o missel entrou 
     mov explosaoPos.y, edx
     mov heliDoisPos.x, 660     
     mov balaPos.x, -20                      ;'apaga' a bala pois ela acertou o alvo
+    invoke PlaySound, ADDR Play1, NULL, SND_FILENAME or SND_ASYNC ; SOM DE EXPLOSAO DO HELICOPTERO
     .endif
     ret
 VerificaSeAcertouHeliDois endp 
@@ -728,6 +748,7 @@ VerificaSeAcertouBarco proc
       mov explosaoPos.y, edx
       mov barcoPos.x, 0  
       mov balaPos.x, -20                      ;'apaga' a bala pois ela acertou o alvo
+      invoke PlaySound, ADDR Play1, NULL, SND_FILENAME or SND_ASYNC ; SOM DE EXPLOSAO DO BARCO
           
     .endif
 
@@ -764,6 +785,7 @@ VerificaSeAcertouBarcoDois proc
       mov explosaoPos.y, edx
       mov barcoDoisPos.x, 0  
       mov balaPos.x, -20                      ;'apaga' a bala pois ela acertou o alvo
+      invoke PlaySound, ADDR Play1, NULL, SND_FILENAME or SND_ASYNC ; SOM DE EXPLOSAO DO HELICOPTERO
           
     .endif
 
@@ -836,7 +858,9 @@ VerificaFuel proc
       .if fuelPos.x>650
         mov fuelPos.x, 200
       .endif
-        mov fuelPos.y, 0      
+        mov fuelPos.y, 0    
+        
+      invoke PlaySound, ADDR Play1, NULL, SND_FILENAME or SND_ASYNC ; SOM DE EXPLOSAO DO FUEL  
     .endif
 
     ret
@@ -943,8 +967,9 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos d
     INVOKE  TransparentBlt,hDC,barcoDoisPos.x,barcoDoisPos.y,35,18,memDC,0,0,35,18,CREF_TRANSPARENT 
     ;----------bala
     .if atirou > 0
+
         .if balaPos.y <= 0
-            mov atirou,0         
+            mov atirou,0       
         .elseif   
             invoke SelectObject,memDC,hBmp5  ; selecionei o novo bitmap
             mov hOld, eax     
@@ -954,6 +979,7 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos d
             ;sub balaPos.y, 23
             ;INVOKE  TransparentBlt,hDC,balaPos.x,balaPos.y,10,19,memDC,0,0,10,19,CREF_TRANSPARENT 
         .endif
+            
     .endif
 
     ;----------explosao
