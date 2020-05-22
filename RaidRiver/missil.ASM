@@ -22,6 +22,24 @@
 	CREF_TRANSPARENT2 EQU 0FF0000h
 
 
+; ----------------------------------------------------------------------
+; Prototypes are used in conjunction with the MASM "invoke" syntax for
+; checking the number and size of parameters passed to a procedure. This
+; improves the reliability of code that is written where errors in
+; parameters are caught and displayed at assembly time.
+; ----------------------------------------------------------------------
+
+        WinMain PROTO :DWORD,:DWORD,:DWORD,:DWORD
+        WndProc PROTO :DWORD,:DWORD,:DWORD,:DWORD
+        TopXY PROTO   :DWORD,:DWORD
+		PlaySound	PROTO	STDCALL :DWORD, :DWORD, :DWORD
+; #########################################################################
+
+
+
+
+
+
 .data
 
     FileName0       db "00explosion_8bits.wav",0         
