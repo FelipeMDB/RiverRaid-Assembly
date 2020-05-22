@@ -201,7 +201,7 @@ WinMain proc hInst     :DWORD,hPrevInst :DWORD, CmdLine :DWORD, CmdShow   :DWORD
     invoke GetSystemMetrics,SM_CYSCREEN
     invoke TopXY,Wht,eax
     mov Wty, eax
-
+    
     invoke CreateWindowEx,WS_EX_LEFT, ADDR szClassName, ADDR szDisplayName, WS_OVERLAPPEDWINDOW, 
                           Wtx,Wty,Wwd,Wht, NULL,NULL, hInst,NULL
 
@@ -247,7 +247,6 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
 		mov eax,wParam
 
     .elseif uMsg == WM_CREATE                                         ;instancia posições
-
         ;mov	aviaoAtual, 0 
 
         ;Posicionamento inicial de cada componente, suas coordenadas x e y             
@@ -408,14 +407,14 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
             invoke InvalidateRect,hWnd, addr Rect,TRUE
                      
         
-    .if sera == 0
-        .if perdeu > 0  || acabouGasolina > 0
-        ;mov Rect.bottom, 0
-        ;mov Rect.right, 0
-        ;invoke InvalidateRect,hWnd, addr Rect,TRUE
-        invoke verifica, hWin         
-        .endif
-    .endif
+    ; .if sera == 0
+    ;     .if perdeu > 0  || acabouGasolina > 0
+    ;     ;mov Rect.bottom, 0
+    ;     ;mov Rect.right, 0
+    ;     ;invoke InvalidateRect,hWnd, addr Rect,TRUE
+    ;     invoke verifica, hWin,uMsg,wParam,lParam         
+    ;     .endif
+    ; .endif
 
     .elseif uMsg == WM_CLOSE
         szText perg,"Tem certeza que deseja sair?"
@@ -433,25 +432,34 @@ WndProc proc hWin   :DWORD, uMsg   :DWORD, wParam :DWORD, lParam :DWORD
     ret
 WndProc endp
 
-verifica proc hWin:DWORD ;Procedimento chamado quando o usuário perdeu, pergunta se ele quer jogar novamente ou sair
+verifica proc hWin:DWORD,uMsg:DWORD,wParam:DWORD,lParam:DWORD ;Procedimento chamado quando o usuário perdeu, pergunta se ele quer jogar novamente ou sair
        
         mov sera, 2 
         .if perdeu > 0                                            ;verifica se perdeu porque foi atingido por um obstáculo
             szText msg,"Voce foi atingido! Deseja jogar de novo?" ;cria a variavel contendo o texto que será a mensagem
             invoke MessageBox,hWin,ADDR msg,ADDR szDisplayName,MB_YESNO  ;cria a message box, do tipo de resposta SIM ou NAO, com o texto criado acima
+            .if eax == IDNO               ;se o usuário escolheu sair
+                invoke ExitProcess, 0     ;abortamos o programa, terminamos a execução
+            .elseif                       ;se o usuário escolheu jogar novamente
+                mov perdeu, 0
+                mov acabouGasolina, 0
+                ;mov tempo, 500
+                ;invoke ShowWindow,hWnd,SW_SHOWNORMAL
+                ;invoke UpdateWindow,hWin
+                invoke WinMain, hWin,uMsg,wParam,lParam
+            .endif 
         .elseif
             szText msgG,"Sua gasolina acabou, voce perdeu! Deseja jogar de novo?"  ;cria a variavel contendo o texto que será a mensagem
             invoke MessageBox,hWin,ADDR msgG,ADDR szDisplayName,MB_YESNO  ;cria a message box, do tipo de resposta SIM ou NAO, com o texto criado acima
-        .endif  
-        
-        .if eax == IDNO               ;se o usuário escolheu sair
-            invoke ExitProcess, 0     ;abortamos o programa, terminamos a execução
-        .elseif                       ;se o usuário escolheu jogar novamente
-            mov perdeu, 0
-            mov acabouGasolina, 0
-            mov tempo, 500
-            ;invoke WndProc, NULL, NULL, NULL, NULL ;chama o procedimento que cria a janela novamente, recomeçando o jogo          
-        .endif                        ;determina que o if acabou
+            .if eax == IDNO               ;se o usuário escolheu sair
+                invoke ExitProcess, 0     ;abortamos o programa, terminamos a execução
+            .elseif                       ;se o usuário escolheu jogar novamente
+                mov perdeu, 0
+                mov acabouGasolina, 0
+                ;mov tempo, 500
+                invoke WndProc, NULL, NULL, NULL, NULL ;chama o procedimento que cria a janela novamente, recomeçando o jogo          
+            .endif                        ;determina que o if acabou
+        .endif 
 verifica endp                                 ;fim da definição do procedimento
 
 ; ########################################################################
@@ -469,6 +477,14 @@ TopXY endp
 ; #########################################################################
 
 Abaixa proc 
+    .if sera == 0
+        .if perdeu > 0  || acabouGasolina > 0
+        ;mov Rect.bottom, 0
+        ;mov Rect.right, 0
+        ;invoke InvalidateRect,hWnd, addr Rect,TRUE
+        invoke verifica, NULL,NULL,NULL, NULL        
+        .endif
+    .endif
     .if tempo > 0
         dec tempo
     .endif
@@ -723,7 +739,7 @@ VerificaFuel proc
     sub ecx, eax
  
     .if ecx <= 26 && ebx <= 46
-      add acelera, 28
+      add acelera, 38       ;18173
 
       add tempo, 50
 
@@ -777,97 +793,72 @@ VerificaFuel proc
 VerificaFuel endp  
 
 VerificaSePerdeu proc 
+    LOCAL aux:DWORD
+    mov aux, 0
+
+    prepara:
     xor edx, edx
     xor ebx, ebx
     xor ecx, ecx
     xor eax, eax
 
-    mov edx, heliPos.x
-    mov ebx, aviaoPos.x
-    sub ebx, edx
+    .if aux == 0
+        mov edx, heliPos.x
+        mov ebx, aviaoPos.x
+        sub ebx, edx
 
-    mov eax, aviaoPos.y
-    mov ecx, heliPos.y
-    sub ecx, eax
-    .if ecx <= 20 && ebx <= 20
-                xor ecx, ecx
-                mov ecx, aviaoPos.x
-                mov explosaoPos.x, ecx
+        mov eax, aviaoPos.y
+        mov ecx, heliPos.y
+        sub ecx, eax
+        inc aux
+        jmp ok
 
-                xor edx, edx
-                mov edx, aviaoPos.y
-                mov explosaoPos.y, edx
-                inc perdeu
+    .elseif aux == 1
+        mov edx, barcoPos.x
+        mov ebx, aviaoPos.x
+        sub ebx, edx
+
+        mov eax, aviaoPos.y
+        mov ecx, barcoPos.y
+        sub ecx, eax
+        inc aux
+        jmp ok
+    .elseif aux == 2
+        mov edx, heliDoisPos.x
+        mov ebx, aviaoPos.x
+        sub ebx, edx
+
+        mov eax, aviaoPos.y
+        mov ecx, heliDoisPos.y
+        sub ecx, eax
+        inc aux
+        jmp ok
+    .elseif aux == 3
+        mov edx, barcoDoisPos.x
+        mov ebx, aviaoPos.x
+        sub ebx, edx
+
+        mov eax, aviaoPos.y
+        mov ecx, barcoDoisPos.y
+        sub ecx, eax
+        inc aux
+        jmp ok
+    .elseif aux == 4
+        ret
     .endif
 
-    xor edx, edx
-    xor ebx, ebx
-    xor ecx, ecx
-    xor eax, eax
+    ok:
+        .if ecx <= 20 && ebx <= 20
+            xor ecx, ecx
+            mov ecx, aviaoPos.x
+            mov explosaoPos.x, ecx
 
-    mov edx, barcoPos.x
-    mov ebx, aviaoPos.x
-    sub ebx, edx
-
-    mov eax, aviaoPos.y
-    mov ecx, barcoPos.y
-    sub ecx, eax
-     .if ecx <= 20 && ebx <= 20
-                xor ecx, ecx
-                mov ecx, aviaoPos.x
-                mov explosaoPos.x, ecx
-
-                xor edx, edx
-                mov edx, aviaoPos.y
-                mov explosaoPos.y, edx
-                inc perdeu
-    .endif
-
-    xor edx, edx
-    xor ebx, ebx
-    xor ecx, ecx
-    xor eax, eax
-
-    mov edx, heliDoisPos.x
-    mov ebx, aviaoPos.x
-    sub ebx, edx
-
-    mov eax, aviaoPos.y
-    mov ecx, heliDoisPos.y
-    sub ecx, eax
-     .if ecx <= 20 && ebx <= 20
-                xor ecx, ecx
-                mov ecx, aviaoPos.x
-                mov explosaoPos.x, ecx
-
-                xor edx, edx
-                mov edx, aviaoPos.y
-                mov explosaoPos.y, edx
-                inc perdeu
-    .endif
-
-    xor edx, edx
-    xor ebx, ebx
-    xor ecx, ecx
-    xor eax, eax
-
-    mov edx, barcoDoisPos.x
-    mov ebx, aviaoPos.x
-    sub ebx, edx
-
-    mov eax, aviaoPos.y
-    mov ecx, barcoDoisPos.y
-    sub ecx, eax
-     .if ecx <= 20 && ebx <= 20
-                xor ecx, ecx
-                mov ecx, aviaoPos.x
-                mov explosaoPos.x, ecx
-
-                xor edx, edx
-                mov edx, aviaoPos.y
-                mov explosaoPos.y, edx
-                inc perdeu
-    .endif
+            xor edx, edx
+            mov edx, aviaoPos.y
+            mov explosaoPos.y, edx
+            inc perdeu
+        .endif
+        jmp prepara
 
     ret
 VerificaSePerdeu endp 
