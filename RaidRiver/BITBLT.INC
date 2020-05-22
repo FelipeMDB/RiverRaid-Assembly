@@ -88,6 +88,8 @@
     hInstance10   dd 0
     hInstance11   dd 0
     hInstance12   dd 0
+    hInstance13   dd 0
+
 
     hIcon         dd 0
 
@@ -103,6 +105,8 @@
     hBmp10        dd 0   
 	  hBmp11        dd 0   
 	  hBmp12        dd 0   
+	  hBmp13        dd 0   
+
 
     memDC2        DWORD 0 
     x	 		  dd 0
