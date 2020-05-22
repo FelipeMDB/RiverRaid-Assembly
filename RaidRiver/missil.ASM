@@ -20,6 +20,38 @@
 
 	CREF_TRANSPARENT  EQU 0FF00FFh
 	CREF_TRANSPARENT2 EQU 0FF0000h
+
+
+.data
+
+    FileName0       db "00explosion_8bits.wav",0         
+    FileName1       db "01explosion_8bits_versao2.wav",0  
+    FileName2       db "02explosion_nave.wav",0
+    FileName3       db "03game_over.wav",0
+    FileName4       db "04laser_shot.wav",0
+    FileName5       db "05victory.wav",0
+
+    Play	  db "05victory.wav",0		; Sound file
+
+    ; - MCI_OPEN_PARMS Structure ( API=mciSendCommand ) -
+    open_dwCallback     dd ?
+    open_wDeviceID     dd ?
+    open_lpstrDeviceType  dd ?
+    open_lpstrElementName  dd ?
+    open_lpstrAlias     dd ?
+
+    ; - MCI_GENERIC_PARMS Structure ( API=mciSendCommand ) -
+    generic_dwCallback   dd ?
+
+    ; - MCI_PLAY_PARMS Structure ( API=mciSendCommand ) -
+    play_dwCallback     dd ?
+    play_dwFrom       dd ?
+    play_dwTo        dd ?
+
+
+
+
+
     
 .code
 
