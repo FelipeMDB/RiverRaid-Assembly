@@ -117,7 +117,6 @@
     perdeu    dd 0
     count dd 0
     sera  dd 0
-    coringa dd 0
     acabouGasolina dd 0
     hitpoint 	    POINT <>
     posicao       POINT <>

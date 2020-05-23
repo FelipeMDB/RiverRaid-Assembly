@@ -435,99 +435,104 @@ WndProc proc hWin   :DWORD,
         .endif
 
    .elseif uMsg==WM_FINISH        
-		;invoke InvalidateRect,hWnd,NULL,TRUE
+		invoke InvalidateRect,hWnd,NULL,TRUE
 
-    .elseif uMsg==WM_T  
+    .elseif uMsg==WM_BARCO             ;chamado da thread a cada passo de seu timer
         invoke VerificaSePerdeu         
         invoke VerificaSeAcertouBarco
         invoke VerificaSeAcertouBarcoDois
         inc barcoPos.x
-        
-        .if barcoPos.x > 655
-            mov barcoPos.x,162
+         
+        .if barcoPos.x > 655       ;verifica se a posição x do barco 1 passou do limite
+            mov barcoPos.x,162     ;se passou, mudamos sua coordenada x para sua posição inicial, onde pode ser visto na tela
         .endif  
 
-        inc barcoDoisPos.x
+        inc barcoDoisPos.x         ;incrementa a posição do barco, para ele "ir para frente"
         
-        .if barcoDoisPos.x > 655
-            mov barcoDoisPos.x,162
+        .if barcoDoisPos.x > 655   ;verifica se a posição x do barco 2 passou do limite
+            mov barcoDoisPos.x,162 ;se passou, mudamos sua coordenada x para sua posição inicial, onde pode ser visto na tela
         .endif    
 
-    ;.elseif uMsg==WM_HELI
-        invoke VerificaFuel
-        invoke VerificaSeAcertouHeli
-        invoke VerificaSeAcertouHeliDois
-        inc heliPos.x
-        dec heliDoisPos.x
+    .elseif uMsg==WM_HELI
+        invoke VerificaFuel              ;verifica se o jogador passou pela posição do combustível
+        invoke VerificaSeAcertouHeli     ;verifica se o jogador passou pela posição do helicóptero 1
+        invoke VerificaSeAcertouHeliDois ;verifica se o jogador passou pela posição do helicóptero 2
+        inc heliPos.x                    ;incrementa a posição do helicóptero 1, para ele se movimentar para a direita
+        dec heliDoisPos.x                ;incrementa a posição do helicóptero 2 , para ele se movimentar para a esquerda
 
-        .if heliPos.x > 655
-            mov heliPos.x,162
+        .if heliPos.x > 655              ;verifica se a posição x do helicóptero 1 passou do limite
+            mov heliPos.x,162            ;se passou, mudamos sua coordenada x para sua posição inicial, onde pode ser visto na tela
         .endif
 
-        .if heliDoisPos.x < 10
-            mov heliDoisPos.x,670
+        .if heliDoisPos.x < 10           ;verifica se a posição x do helicóptero 2 passou do limite
+            mov heliDoisPos.x,670        ;se passou, mudamos sua coordenada x para sua posição inicial, onde pode ser visto na tela
         .endif
 
-     .elseif uMsg==WM_DOWN  
-            invoke Abaixa
-            invoke InvalidateRect,hWnd, addr Rect,TRUE
-                     
-        
-    ; .if sera == 0
-    ;     .if perdeu > 0  || acabouGasolina > 0
-    ;     ;mov Rect.bottom, 0
-    ;     ;mov Rect.right, 0
-    ;     ;invoke InvalidateRect,hWnd, addr Rect,TRUE
-    ;     invoke verifica, hWin,uMsg,wParam,lParam         
-    ;     .endif
-    ; .endif
+     .elseif uMsg==WM_DOWN               ;chamado da thread a cada passo de seu timer     
+            invoke Abaixa                ;chama procedimento que incrementa a coordenada y dos elementos da tela, para dar a impressão que o avião está indo para frente
+            invoke InvalidateRect,hWnd, addr Rect,TRUE   ;Atualiza a tela, redesenhando a áerea delimitada pelo Rec de novo
 
-    .elseif uMsg == WM_CLOSE
-        szText perg,"Tem certeza que deseja sair?"
-        invoke MessageBox,hWin,ADDR perg,ADDR szDisplayName,MB_YESNO
-          .if eax == IDNO
-            return 0
+    .elseif uMsg == WM_CLOSE             ;verifica se o jogador quer fechar a tela e parar a execução
+        szText perg,"Tem certeza que deseja sair?"         ;mensagem de confirmação exibida para o usuário confirmar sua saída
+        invoke MessageBox,hWin,ADDR perg,ADDR szDisplayName,MB_YESNO ;criação da MessageBox, com as opções sim ou não, com o texto acima
+          .if eax == IDNO   ;se o jogador não quer fechar o progama
+            return 0        ;retorna zero, voltando à execução do jogo normalmente
           .endif
 
-    .elseif uMsg == WM_DESTROY
-        invoke PostQuitMessage,NULL
-        return 0 
+    .elseif uMsg == WM_DESTROY       ;se o programa for fechado
+        invoke PostQuitMessage,NULL  
+        return 0                     ;interrompemos a execução
     .endif
 
-    invoke DefWindowProc,hWin,uMsg,wParam,lParam
+    invoke DefWindowProc,hWin,uMsg,wParam,lParam   ;define o estado atual da janela, atualizando suas características
     ret
-WndProc endp
+WndProc endp                ;término da definição do procedimento
 
 verifica proc hWin:DWORD,uMsg:DWORD,wParam:DWORD,lParam:DWORD ;Procedimento chamado quando o usuário perdeu, pergunta se ele quer jogar novamente ou sair
        
-        mov sera, 2 
-        .if perdeu > 0                                            ;verifica se perdeu porque foi atingido por um obstáculo
+        mov sera, 2                                                   ;necesário para não entrar em loop e exibir diversas vezes na execução repetida da chamada desse procedimento
+        .if perdeu > 0                                                ;verifica se foi atingido ou se sua gasolina acabou                                       ;verifica se perdeu porque foi atingido por um obstáculo
             invoke PlaySound, ADDR Play3, NULL, SND_FILENAME or SND_ASYNC ; SOM DE DERROTA
-            szText msg,"Voce foi atingido! Deseja jogar de novo?" ;cria a variavel contendo o texto que será a mensagem
-            invoke MessageBox,hWin,ADDR msg,ADDR szDisplayName,MB_YESNO  ;cria a message box, do tipo de resposta SIM ou NAO, com o texto criado acima
-            .if eax == IDNO               ;se o usuário escolheu sair
-                invoke ExitProcess, 0     ;abortamos o programa, terminamos a execução
-            .elseif                       ;se o usuário escolheu jogar novamente
-                mov perdeu, 0
-                mov acabouGasolina, 0
-                ;mov tempo, 500
-                ;invoke ShowWindow,hWnd,SW_SHOWNORMAL
-                ;invoke UpdateWindow,hWin
-                invoke WinMain, hWin,uMsg,wParam,lParam
+            szText msg,"Voce foi atingido!"                           ;cria a variavel contendo o texto que será a mensagem
+            invoke MessageBox,hWin,ADDR msg,ADDR szDisplayName,MB_OK  ;cria a message box, do tipo que notifica o usuário e espera sua confirmação, com texto criado acima
+            .if eax == IDOK            
+                invoke ExitProcess, 0                                 ;interrompe e execução do programa, fecha a janela
             .endif 
         .elseif
             invoke PlaySound, ADDR Play3, NULL, SND_FILENAME or SND_ASYNC ; SOM DE DERROTA
-            szText msgG,"Sua gasolina acabou, voce perdeu! Deseja jogar de novo?"  ;cria a variavel contendo o texto que será a mensagem
-            invoke MessageBox,hWin,ADDR msgG,ADDR szDisplayName,MB_YESNO  ;cria a message box, do tipo de resposta SIM ou NAO, com o texto criado acima
-            .if eax == IDNO               ;se o usuário escolheu sair
-                invoke ExitProcess, 0     ;abortamos o programa, terminamos a execução
-            .elseif                       ;se o usuário escolheu jogar novamente
-                mov perdeu, 0
-                mov acabouGasolina, 0
-                ;mov tempo, 500
-                invoke WndProc, NULL, NULL, NULL, NULL ;chama o procedimento que cria a janela novamente, recomeçando o jogo          
-            .endif                        ;determina que o if acabou
+            szText msgG,"Sua gasolina acabou, voce perdeu!"  ;cria a variavel contendo o texto que será a mensagem
+            invoke MessageBox,hWin,ADDR msg,ADDR szDisplayName,MB_OK  ;cria a message box, do tipo que notifica o usuário e espera sua confirmação, com texto criado acima
+            .if eax == IDOK               
+                invoke ExitProcess, 0                   ;interrompe e execução do programa, fecha a janela
+            .endif                                      ;determina que o if acabou
         .endif 
+        ; .if perdeu > 0                                            ;verifica se perdeu porque foi atingido por um obstáculo
+        ;     invoke PlaySound, ADDR Play3, NULL, SND_FILENAME or SND_ASYNC ; SOM DE DERROTA
+        ;     szText msg,"Voce foi atingido! Deseja jogar de novo?" ;cria a variavel contendo o texto que será a mensagem
+        ;     invoke MessageBox,hWin,ADDR msg,ADDR szDisplayName,MB_YESNO  ;cria a message box, do tipo de resposta SIM ou NAO, com o texto criado acima
+        ;     .if eax == IDNO               ;se o usuário escolheu sair
+        ;         invoke ExitProcess, 0     ;abortamos o programa, terminamos a execução
+        ;     .elseif                       ;se o usuário escolheu jogar novamente
+        ;         mov achou, 0
+        ;         mov atirou, 0
+        ;         mov acelera, 0   ;18173
+        ;         mov perdeu, 0
+        ;         mov count, 0
+        ;         mov sera, 0
+        ;         mov acabouGasolina, 0
+        ;         mov tempo, 500
+        ;         invoke WinMain, hWin,uMsg,wParam,lParam
+        ;     .endif 
+        ; .elseif
+        ;     invoke PlaySound, ADDR Play3, NULL, SND_FILENAME or SND_ASYNC ; SOM DE DERROTA
+        ;     szText msgG,"Sua gasolina acabou, voce perdeu! Deseja jogar de novo?"  ;cria a variavel contendo o texto que será a mensagem
+        ;     invoke MessageBox,hWin,ADDR msgG,ADDR szDisplayName,MB_YESNO  ;cria a message box, do tipo de resposta SIM ou NAO, com o texto criado acima
+        ;     .if eax == IDNO               ;se o usuário escolheu sair
+        ;         invoke ExitProcess, 0     ;abortamos o programa, terminamos a execução
+        ;     .elseif                       ;se o usuário escolheu jogar novamente
+        ;         invoke WinMain, hWin,uMsg,wParam,lParam ;chama o procedimento que cria a janela novamente, recomeçando o jogo          
+        ;     .endif                        ;determina que o if acabou
+        ; .endif 
 verifica endp                                 ;fim da definição do procedimento
 
 ; ########################################################################
@@ -544,21 +549,20 @@ TopXY endp
 
 ; #########################################################################
 
-Abaixa proc 
-    .if sera == 0
-        .if perdeu > 0  || acabouGasolina > 0
-        ;mov Rect.bottom, 0
-        ;mov Rect.right, 0
-        ;invoke InvalidateRect,hWnd, addr Rect,TRUE
-        invoke verifica, NULL,NULL,NULL, NULL        
+Abaixa proc ;Procedimento chamado a cada segundo, para atualizar a coordenada y de cada elemento da tela
+            ;para criar a impressão que o avião está se movimentando para frente, quando na verdade são os outros
+            ;elementos que estão "indo para baixo"
+    .if sera == 0      ;se o usuário não perdeu o jogo até agora
+        .if perdeu > 0  || acabouGasolina > 0 ;verifica se acabou de perder
+        invoke verifica, NULL,NULL,NULL, NULL ;chamada do procedimento para interromper e avisar o jogador que perdeu
         .endif
     .endif
-    .if tempo > 0
-        dec tempo
+    .if tempo > 0     ;se o tempo de vida não acabou
+        dec tempo     ;decrementamos 1 segundo de seu tempo de vida
     .endif
 
-    .if tempo == 1
-        inc acabouGasolina
+    .if tempo == 1          ;se acabou o tempo de vida
+        inc acabouGasolina  ;incrementamos a variável que representa que acabou a gasoline, e portanto o jogo acabou
     .elseif
 
     ;0->    272
@@ -569,8 +573,8 @@ Abaixa proc
     ;multiplicar o tempo por 248 e dividir por 1000
     ; somar 272
 
-    xor eax,eax
-    xor ecx, ecx
+    xor eax,eax               ;apaga qualquer valor que tenha nos registradores para auxiliarem na lógica abaixo
+    xor ecx, ecx             
 
     mov eax, tempo
     mov ecx, 248
@@ -585,14 +589,14 @@ Abaixa proc
 
     mov gasPos.x, eax
 
-    .if achou == 0
-        mov explosaoPos.y,0
-        mov explosaoPos.x, -250        
+    .if achou == 0              ;verifica se a bomba já foi exibida 
+        mov explosaoPos.y,0     ;se já foi, tiramos ela da vista da tela
+        mov explosaoPos.x, -250 ;posicionamos o bitmap da explosão fora dos limites de visão da janela do jogo
     .endif
-    dec achou
+    dec achou                   ;diminuimos o tempo em que a explosão será exibida
 
-    .if acelera == 0        
-        inc heliPos.y
+    .if acelera == 0            ;se a velocidade da movimentação da tela é a original, sem sofrer influências do combustível      
+        inc heliPos.y           ;incrementamos a coordenada y de cada elemento para irem mais para baixo da janela
         inc heliDoisPos.y
         inc barcoPos.y 
         inc barcoDoisPos.y 
@@ -611,10 +615,19 @@ Abaixa proc
         .endif
 
     .elseif         
-        xor ebx, ebx
-        mov ebx, acelera
-        
-        dec acelera        ;18173
+        .if acelera <= 10   
+            dec acelera 
+            xor ebx, ebx
+            mov ebx, 3
+        .elseif acelera <= 20
+            dec acelera 
+            xor ebx, ebx
+            mov ebx, 8
+        .elseif            
+            dec acelera     
+            xor ebx, ebx
+            mov ebx, 15
+        .endif
 
         sub esqPos.y, ebx
         .if esqPos.y <= 10
@@ -811,7 +824,7 @@ VerificaFuel proc
     sub ecx, eax
  
     .if ecx <= 26 && ebx <= 46
-      add acelera, 38       ;18173
+      add acelera, 58      
 
       add tempo, 50
 
@@ -1055,7 +1068,7 @@ ThreadBarcoProc PROC USES ecx Param:DWORD         ;Thread executada para desenha
     invoke WaitForSingleObject,hEventStart,20     ;define o timer, de quanto em quanto tempo essa thread será chamada
 
 	.IF eax == WAIT_TIMEOUT	
-	    invoke PostMessage,hWnd,WM_T,NULL,NULL
+	    invoke PostMessage,hWnd,WM_BARCO,NULL,NULL
 	    jmp   ThreadBarcoProc     
     .ENDIF
         
@@ -1066,10 +1079,10 @@ ThreadBarcoProc ENDP
 
 ThreadHeliProc PROC USES ecx Param:DWORD          ;Thread executada para desenhar o bitmap do helicopero                 
 
-    invoke WaitForSingleObject,hEventStart,20     ;define o timer, de quanto em quanto tempo essa thread será chamada ;INFINITE
+    invoke WaitForSingleObject,hEventStart,10     ;define o timer, de quanto em quanto tempo essa thread será chamada ;INFINITE
     
 	.IF eax == WAIT_TIMEOUT	
-	    invoke PostMessage,hWnd,WM_T,NULL,NULL
+	    invoke PostMessage,hWnd,WM_HELI,NULL,NULL
 	    jmp   ThreadHeliProc     
     .ENDIF
         
@@ -1096,9 +1109,9 @@ ThreadDownProc PROC USES ecx Param:DWORD     ;Thread executada para desenhar o a
 
     invoke WaitForSingleObject,hEventStart,80       ;define o timer, de quanto em quanto tempo essa thread será chamada
 
-	.IF eax == WAIT_TIMEOUT	
+	.IF eax == WAIT_TIMEOUT	                        ;se o tempo definido acima acabou
 	    invoke PostMessage,hWnd,WM_DOWN,NULL,NULL
-	    jmp   ThreadDownProc     
+	    jmp   ThreadDownProc                        ;inicia essa thread de novo
     .ENDIF
         
     jmp   ThreadDownProc
