@@ -44,20 +44,20 @@
 
 .data
 
-    FileName0       db "00explosion_8bits.wav",0         
-    FileName1       db "01explosion_8bits_versao2.wav",0  
-    FileName2       db "02explosion_nave.wav",0
-    FileName3       db "03game_over.wav",0
-    FileName4       db "04laser_shot.wav",0
-    FileName5       db "05victory.wav",0
+    FileName0       db "00explosion_8bits.wav",0            ;som de explosao versao 1, nao utilizado por ser desagradavel
+    FileName1       db "01explosion_8bits_versao2.wav",0    ;som de explosao dos obstaculos
+    FileName2       db "02explosion_nave.wav",0             ;som de explosao da nave do jogador
+    FileName3       db "03game_over.wav",0                  ;som de derrota (nava explodiu)
+    FileName4       db "04laser_shot.wav",0                 ;som do tiro da nave do jogador
+    FileName5       db "05victory.wav",0                    ;som de vitoria, venceu a fase
 
-    Play0	  db "00explosion_8bits.wav",0		; Sound file
-    Play1	  db "01explosion_8bits_versao2.wav",0		; Sound file
-    Play2	  db "02explosion_nave.wav",0		; Sound file
-    Play3	  db "03game_over.wav",0		; Sound file
-    Play4	  db "04laser_shot.wav",0		; Sound file
-    Play5	  db "05victory.wav",0		; Sound file
-    somDeTiro db 0
+    Play0	  db "00explosion_8bits.wav",0		; Arquivo de Som
+    Play1	  db "01explosion_8bits_versao2.wav",0		; Arquivo de Som
+    Play2	  db "02explosion_nave.wav",0		; Arquivo de Som
+    Play3	  db "03game_over.wav",0		; Arquivo de Som
+    Play4	  db "04laser_shot.wav",0		; Arquivo de Som
+    Play5	  db "05victory.wav",0		; Arquivo de Som
+    somDeTiro db 0                      ;variavel para contagem do tiro (som desencadeado apenas no momento de uso do laser/tiro)
 
     ; - MCI_OPEN_PARMS Structure ( API=mciSendCommand ) -
     open_dwCallback     dd ?
@@ -492,6 +492,7 @@ verifica proc hWin:DWORD,uMsg:DWORD,wParam:DWORD,lParam:DWORD ;Procedimento cham
        
         mov sera, 2                                                   ;necesário para não entrar em loop e exibir diversas vezes na execução repetida da chamada desse procedimento
         .if perdeu > 0                                                ;verifica se foi atingido ou se sua gasolina acabou                                       ;verifica se perdeu porque foi atingido por um obstáculo
+            invoke PlaySound, ADDR Play2, NULL, SND_FILENAME or SND_ASYNC ; SOM DE EXPLOSAO DA NAVE
             invoke PlaySound, ADDR Play3, NULL, SND_FILENAME or SND_ASYNC ; SOM DE DERROTA
             szText msg,"Voce foi atingido!"                           ;cria a variavel contendo o texto que será a mensagem
             invoke MessageBox,hWin,ADDR msg,ADDR szDisplayName,MB_OK  ;cria a message box, do tipo que notifica o usuário e espera sua confirmação, com texto criado acima
