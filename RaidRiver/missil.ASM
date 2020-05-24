@@ -379,7 +379,7 @@ WndProc proc hWin   :DWORD,
 		mov    hThreadDown,eax
 
         
-        szText inicio,"O jogo vai comecar, prepare-se!"
+        szText inicio,"PREPARE-SE!"
         invoke MessageBox,hWin,ADDR inicio,ADDR szDisplayName,MB_OK
 		
 
@@ -492,6 +492,7 @@ verifica proc hWin:DWORD,uMsg:DWORD,wParam:DWORD,lParam:DWORD ;Procedimento cham
        
         mov sera, 2                                                   ;necesário para não entrar em loop e exibir diversas vezes na execução repetida da chamada desse procedimento
         .if perdeu > 0                                                ;verifica se foi atingido ou se sua gasolina acabou                                       ;verifica se perdeu porque foi atingido por um obstáculo
+            mov aviaoPos.x,0
             invoke PlaySound, ADDR Play2, NULL, SND_FILENAME or SND_ASYNC ; SOM DE EXPLOSAO DA NAVE
             invoke PlaySound, ADDR Play3, NULL, SND_FILENAME or SND_ASYNC ; SOM DE DERROTA
             szText msg,"Voce foi atingido!"                           ;cria a variavel contendo o texto que será a mensagem
