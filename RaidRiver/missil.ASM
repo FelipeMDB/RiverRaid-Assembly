@@ -508,33 +508,6 @@ verifica proc hWin:DWORD,uMsg:DWORD,wParam:DWORD,lParam:DWORD ;Procedimento cham
                 invoke ExitProcess, 0                   ;interrompe e execução do programa, fecha a janela
             .endif                                      ;determina que o if acabou
         .endif 
-        ; .if perdeu > 0                                            ;verifica se perdeu porque foi atingido por um obstáculo
-        ;     invoke PlaySound, ADDR Play3, NULL, SND_FILENAME or SND_ASYNC ; SOM DE DERROTA
-        ;     szText msg,"Voce foi atingido! Deseja jogar de novo?" ;cria a variavel contendo o texto que será a mensagem
-        ;     invoke MessageBox,hWin,ADDR msg,ADDR szDisplayName,MB_YESNO  ;cria a message box, do tipo de resposta SIM ou NAO, com o texto criado acima
-        ;     .if eax == IDNO               ;se o usuário escolheu sair
-        ;         invoke ExitProcess, 0     ;abortamos o programa, terminamos a execução
-        ;     .elseif                       ;se o usuário escolheu jogar novamente
-        ;         mov achou, 0
-        ;         mov atirou, 0
-        ;         mov acelera, 0   ;18173
-        ;         mov perdeu, 0
-        ;         mov count, 0
-        ;         mov sera, 0
-        ;         mov acabouGasolina, 0
-        ;         mov tempo, 500
-        ;         invoke WinMain, hWin,uMsg,wParam,lParam
-        ;     .endif 
-        ; .elseif
-        ;     invoke PlaySound, ADDR Play3, NULL, SND_FILENAME or SND_ASYNC ; SOM DE DERROTA
-        ;     szText msgG,"Sua gasolina acabou, voce perdeu! Deseja jogar de novo?"  ;cria a variavel contendo o texto que será a mensagem
-        ;     invoke MessageBox,hWin,ADDR msgG,ADDR szDisplayName,MB_YESNO  ;cria a message box, do tipo de resposta SIM ou NAO, com o texto criado acima
-        ;     .if eax == IDNO               ;se o usuário escolheu sair
-        ;         invoke ExitProcess, 0     ;abortamos o programa, terminamos a execução
-        ;     .elseif                       ;se o usuário escolheu jogar novamente
-        ;         invoke WinMain, hWin,uMsg,wParam,lParam ;chama o procedimento que cria a janela novamente, recomeçando o jogo          
-        ;     .endif                        ;determina que o if acabou
-        ; .endif 
 verifica endp                                 ;fim da definição do procedimento
 
 ; ########################################################################
@@ -563,7 +536,7 @@ Abaixa proc ;Procedimento chamado a cada segundo, para atualizar a coordenada y 
         dec tempo     ;decrementamos 1 segundo de seu tempo de vida
     .endif
 
-    .if tempo == 1          ;se acabou o tempo de vida
+    .if tempo < 2          ;se acabou o tempo de vida
         inc acabouGasolina  ;incrementamos a variável que representa que acabou a gasoline, e portanto o jogo acabou
     .elseif
 
@@ -616,18 +589,19 @@ Abaixa proc ;Procedimento chamado a cada segundo, para atualizar a coordenada y 
             mov dirPos.y, 1398
         .endif
 
-    .elseif         
-        .if acelera <= 10   
-            dec acelera 
-            xor ebx, ebx
-            mov ebx, 3
-        .elseif acelera <= 20
-            dec acelera 
-            xor ebx, ebx
+    .elseif                   ;se o valor da variável acelerafor diferente de zero, 
+                              ;o jogador passou pelo combústivel, então devemos acelerar a movimentação da tela
+        .if acelera <= 10     ;se o efeito do combustível estiver acabando
+            dec acelera       ;decrementamos acelera, que funciona como um timer
+            xor ebx, ebx      ;limpamos o registrador para usá-lo como auxiliar
+            mov ebx, 3        ;atribuimos ao registrador o valor que 
+        .elseif acelera <= 20 ;se devemos acelerar, mas não na velocidade máxima
+            dec acelera       ;decrementamos acelera, que funciona como um timer
+            xor ebx, ebx      ;limpamos o registrador para usá-lo como auxiliar
             mov ebx, 8
-        .elseif            
-            dec acelera     
-            xor ebx, ebx
+        .elseif               ;se devemos acelerar na velocidade máxima
+            dec acelera       ;decrementamos acelera, que funciona como um timer
+            xor ebx, ebx      ;limpamos o registrador para usá-lo como auxiliar
             mov ebx, 15
         .endif
 
