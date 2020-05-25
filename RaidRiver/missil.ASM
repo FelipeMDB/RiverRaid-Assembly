@@ -503,7 +503,7 @@ verifica proc hWin:DWORD,uMsg:DWORD,wParam:DWORD,lParam:DWORD ;Procedimento cham
         .elseif
             invoke PlaySound, ADDR Play3, NULL, SND_FILENAME or SND_ASYNC ; SOM DE DERROTA
             szText msgG,"Sua gasolina acabou, voce perdeu!"  ;cria a variavel contendo o texto que será a mensagem
-            invoke MessageBox,hWin,ADDR msg,ADDR szDisplayName,MB_OK  ;cria a message box, do tipo que notifica o usuário e espera sua confirmação, com texto criado acima
+            invoke MessageBox,hWin,ADDR msgG,ADDR szDisplayName,MB_OK  ;cria a message box, do tipo que notifica o usuário e espera sua confirmação, com texto criado acima
             .if eax == IDOK               
                 invoke ExitProcess, 0                   ;interrompe e execução do programa, fecha a janela
             .endif                                      ;determina que o if acabou
