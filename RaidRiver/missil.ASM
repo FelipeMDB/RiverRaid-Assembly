@@ -19,6 +19,9 @@
     gasometro        equ        111  ; ...
     gas              equ        112  ; ...
     heliE            equ        113  ; ...
+    barcoE           equ       114  ; ...
+    win              equ       115  ; ...
+    gameOver         equ       116  ; ...
 
 	CREF_TRANSPARENT  EQU 0FF00FFh
 	CREF_TRANSPARENT2 EQU 0FF0000h
@@ -202,6 +205,36 @@ start:                     ;método para iniciar o programa, sempre é o primeir
     invoke GetCommandLine                           ; ...
     mov CommandLine, eax                            ; ...
     ;--------------------------------------------
+    xor eax, eax                                    ; ...
+    invoke GetModuleHandle, NULL                    ; ...
+    mov hInstance14, eax                            ; ...
+ 
+    invoke LoadBitmap,hInstance14, barcoE              ; ...
+    mov hBmp14, eax                                 ; ...
+
+    invoke GetCommandLine                           ; ...
+    mov CommandLine, eax                            ; ...
+    ;--------------------------------------------
+    xor eax, eax                                    ; ...
+    invoke GetModuleHandle, NULL                    ; ...
+    mov hInstance15, eax                            ; ...
+ 
+    invoke LoadBitmap,hInstance15, win              ; ...
+    mov hBmp15, eax                                 ; ...
+
+    invoke GetCommandLine                           ; ...
+    mov CommandLine, eax                            ; ...
+    ;-----------------------------------------------------
+    xor eax, eax                                    ; ...
+    invoke GetModuleHandle, NULL                    ; ...
+    mov hInstance16, eax                            ; ...
+ 
+    invoke LoadBitmap,hInstance16, gameOver              ; ...
+    mov hBmp16, eax                                 ; ...
+
+    invoke GetCommandLine                           ; ...
+    mov CommandLine, eax                            ; ...
+    ;-----------------------------------------------------
     invoke WinMain,hInstance3,NULL,CommandLine,SW_SHOWDEFAULT ;chama o procedimento que criará a janela
     invoke ExitProcess,eax                                    ;sai do start
 
@@ -319,14 +352,14 @@ WndProc proc hWin   :DWORD,
         mov barcoPos.y, 80
 		mov barcoPos.x, 100
 
-        mov barcoDoisPos.y, 400
-		mov barcoDoisPos.x, 10
+        mov barcoDoisPos.y, 1000
+		mov barcoDoisPos.x, 1000
 
         mov heliPos.y, 300
 		mov heliPos.x, 20
 
-        mov heliDoisPos.y, 100
-		mov heliDoisPos.x, 656
+        mov heliDoisPos.y, 10000
+		mov heliDoisPos.x, 10000
 
         mov fuelPos.y, 0
         mov fuelPos.x, 250
@@ -342,7 +375,28 @@ WndProc proc hWin   :DWORD,
         mov gasPos.x, 520
         mov gasPos.y, 525
 
+        mov heliEPos.x, 1000
+        mov heliEPos.y, 1000
+
+        mov heliEDoisPos.x, 625
+        mov heliEDoisPos.y, 100
+
+        mov barcoEPos.x, 1000
+        mov barcoEPos.y, 1000
+
+        mov barcoEDoisPos.x, 625
+        mov barcoEDoisPos.y, 400
+
+        mov winPos.x, 1000
+        mov winPos.y, 1000
+
+        mov gameOverPos.x, 1000
+        mov gameOverPos.y, 1000
+
         mov tempo, 500
+
+        mov heli2ParaEsq, 1
+        mov barco2ParaEsq, 1
 
 		
 		invoke CreateEvent,NULL,FALSE,FALSE,NULL
@@ -441,32 +495,151 @@ WndProc proc hWin   :DWORD,
         invoke VerificaSePerdeu         
         invoke VerificaSeAcertouBarco
         invoke VerificaSeAcertouBarcoDois
-        inc barcoPos.x
-         
-        .if barcoPos.x > 655       ;verifica se a posição x do barco 1 passou do limite
-            mov barcoPos.x,162     ;se passou, mudamos sua coordenada x para sua posição inicial, onde pode ser visto na tela
-        .endif  
 
-        inc barcoDoisPos.x         ;incrementa a posição do barco, para ele "ir para frente"
+        .if barcoParaEsq == 0
+            inc barcoPos.x                    ;incrementa a posição do helicóptero 1, para ele se movimentar para a direita
+
+            .if barcoPos.x > 650              ;verifica se a posição x do helicóptero 1 passou do limite
+                xor ecx, ecx
+                mov ecx, barcoPos.y
+                mov barcoEPos.y, ecx
+
+                xor ecx, ecx
+                mov ecx, barcoPos.x
+                mov barcoEPos.x, ecx
+                mov barcoPos.y, 1000
+
+                mov barcoParaEsq, 1
+            .endif
+        .elseif
+            dec barcoEPos.x
+
+            .if barcoEPos.x < 145              ;verifica se a posição x do helicóptero 1 passou do limite
+                xor ecx, ecx
+                mov ecx, barcoEPos.y
+                mov barcoPos.y, ecx
+
+                xor ecx, ecx
+                mov ecx, barcoEPos.x 
+                mov barcoPos.x, ecx
+                mov barcoEPos.y, 1000
+
+                mov barcoParaEsq, 0
+            .endif
+        .endif
+        ; inc barcoPos.x
+         
+        ; .if barcoPos.x > 655       ;verifica se a posição x do barco 1 passou do limite
+        ;     mov barcoPos.x,162     ;se passou, mudamos sua coordenada x para sua posição inicial, onde pode ser visto na tela
+        ; .endif  
+
+        .if barco2ParaEsq == 0
+            inc barcoDoisPos.x                    ;incrementa a posição do helicóptero 1, para ele se movimentar para a direita
+
+            .if barcoDoisPos.x > 655              ;verifica se a posição x do helicóptero 1 passou do limite
+                xor ecx, ecx
+                mov ecx, barcoDoisPos.y
+                mov barcoEDoisPos.y, ecx
+
+                xor ecx, ecx
+                mov ecx, barcoDoisPos.x
+                mov barcoEDoisPos.x, ecx
+                mov barcoDoisPos.y, 1000
+
+                mov barco2ParaEsq, 1
+            .endif
+        .elseif
+            dec barcoEDoisPos.x
+
+            .if barcoEDoisPos.x < 145              ;verifica se a posição x do helicóptero 1 passou do limite
+                xor ecx, ecx
+                mov ecx, barcoEDoisPos.y
+                mov barcoDoisPos.y, ecx
+
+                xor ecx, ecx
+                mov ecx, barcoEDoisPos.x 
+                mov barcoDoisPos.x, ecx
+                mov barcoEDoisPos.y, 1000
+
+                mov barco2ParaEsq, 0
+            .endif
+        .endif
+
+        ; inc barcoDoisPos.x         ;incrementa a posição do barco, para ele "ir para frente"
         
-        .if barcoDoisPos.x > 655   ;verifica se a posição x do barco 2 passou do limite
-            mov barcoDoisPos.x,162 ;se passou, mudamos sua coordenada x para sua posição inicial, onde pode ser visto na tela
-        .endif    
+        ; .if barcoDoisPos.x > 655   ;verifica se a posição x do barco 2 passou do limite
+        ;     mov barcoDoisPos.x,162 ;se passou, mudamos sua coordenada x para sua posição inicial, onde pode ser visto na tela
+        ; .endif    
 
     .elseif uMsg==WM_HELI
         invoke VerificaFuel              ;verifica se o jogador passou pela posição do combustível
         invoke VerificaSeAcertouHeli     ;verifica se o jogador passou pela posição do helicóptero 1
         invoke VerificaSeAcertouHeliDois ;verifica se o jogador passou pela posição do helicóptero 2
-        inc heliPos.x                    ;incrementa a posição do helicóptero 1, para ele se movimentar para a direita
-        dec heliDoisPos.x                ;incrementa a posição do helicóptero 2 , para ele se movimentar para a esquerda
+       
+        .if heliParaEsq == 0
+            inc heliPos.x                    ;incrementa a posição do helicóptero 1, para ele se movimentar para a direita
 
-        .if heliPos.x > 655              ;verifica se a posição x do helicóptero 1 passou do limite
-            mov heliPos.x,162            ;se passou, mudamos sua coordenada x para sua posição inicial, onde pode ser visto na tela
+            .if heliPos.x > 655              ;verifica se a posição x do helicóptero 1 passou do limite
+                xor ecx, ecx
+                mov ecx, heliPos.y
+                mov heliEPos.y, ecx
+
+                xor ecx, ecx
+                mov ecx, heliPos.x
+                mov heliEPos.x, ecx
+                mov heliPos.y, 1000
+
+                mov heliParaEsq, 1
+            .endif
+        .elseif
+            dec heliEPos.x
+
+            .if heliEPos.x < 145              ;verifica se a posição x do helicóptero 1 passou do limite
+                xor ecx, ecx
+                mov ecx, heliEPos.y
+                mov heliPos.y, ecx
+
+                xor ecx, ecx
+                mov ecx, heliEPos.x 
+                mov heliPos.x, ecx
+                mov heliEPos.y, 1000
+
+                mov heliParaEsq, 0
+            .endif
         .endif
 
-        .if heliDoisPos.x < 10           ;verifica se a posição x do helicóptero 2 passou do limite
-            mov heliDoisPos.x,670        ;se passou, mudamos sua coordenada x para sua posição inicial, onde pode ser visto na tela
+        .if heli2ParaEsq == 0
+            inc heliDoisPos.x                    ;incrementa a posição do helicóptero 1, para ele se movimentar para a direita
+
+            .if heliDoisPos.x > 655              ;verifica se a posição x do helicóptero 1 passou do limite
+                xor ecx, ecx
+                mov ecx, heliDoisPos.y
+                mov heliEDoisPos.y, ecx
+
+                xor ecx, ecx
+                mov ecx, heliDoisPos.x
+                mov heliEDoisPos.x, ecx
+                mov heliDoisPos.y, 1000
+
+                mov heli2ParaEsq, 1
+            .endif
+        .elseif
+            dec heliEDoisPos.x
+
+            .if heliEDoisPos.x < 145              ;verifica se a posição x do helicóptero 1 passou do limite
+                xor ecx, ecx
+                mov ecx, heliEDoisPos.y
+                mov heliDoisPos.y, ecx
+
+                xor ecx, ecx
+                mov ecx, heliEDoisPos.x 
+                mov heliDoisPos.x, ecx
+                mov heliEDoisPos.y, 1000
+
+                mov heli2ParaEsq, 0
+            .endif
         .endif
+        
 
      .elseif uMsg==WM_DOWN               ;chamado da thread a cada passo de seu timer     
             invoke Abaixa                ;chama procedimento que incrementa a coordenada y dos elementos da tela, para dar a impressão que o avião está indo para frente
@@ -493,6 +666,8 @@ verifica proc hWin:DWORD,uMsg:DWORD,wParam:DWORD,lParam:DWORD ;Procedimento cham
         mov sera, 2                                                   ;necesário para não entrar em loop e exibir diversas vezes na execução repetida da chamada desse procedimento
         .if perdeu > 0                                                ;verifica se foi atingido ou se sua gasolina acabou                                       ;verifica se perdeu porque foi atingido por um obstáculo
             mov aviaoPos.x,0
+            mov gameOverPos.x,0
+            mov gameOverPos.y,0
             invoke PlaySound, ADDR Play2, NULL, SND_FILENAME or SND_ASYNC ; SOM DE EXPLOSAO DA NAVE
             invoke PlaySound, ADDR Play3, NULL, SND_FILENAME or SND_ASYNC ; SOM DE DERROTA
             szText msg,"Voce foi atingido!"                           ;cria a variavel contendo o texto que será a mensagem
@@ -501,6 +676,8 @@ verifica proc hWin:DWORD,uMsg:DWORD,wParam:DWORD,lParam:DWORD ;Procedimento cham
                 invoke ExitProcess, 0                                 ;interrompe e execução do programa, fecha a janela
             .endif 
         .elseif
+            mov gameOverPos.x,0
+            mov gameOverPos.y,0
             invoke PlaySound, ADDR Play3, NULL, SND_FILENAME or SND_ASYNC ; SOM DE DERROTA
             szText msgG,"Sua gasolina acabou, voce perdeu!"  ;cria a variavel contendo o texto que será a mensagem
             invoke MessageBox,hWin,ADDR msgG,ADDR szDisplayName,MB_OK  ;cria a message box, do tipo que notifica o usuário e espera sua confirmação, com texto criado acima
@@ -570,11 +747,31 @@ Abaixa proc ;Procedimento chamado a cada segundo, para atualizar a coordenada y 
     .endif
     dec achou                   ;diminuimos o tempo em que a explosão será exibida
 
-    .if acelera == 0            ;se a velocidade da movimentação da tela é a original, sem sofrer influências do combustível      
-        inc heliPos.y           ;incrementamos a coordenada y de cada elemento para irem mais para baixo da janela
-        inc heliDoisPos.y
-        inc barcoPos.y 
-        inc barcoDoisPos.y 
+    .if acelera == 0            ;se a velocidade da movimentação da tela é a original, sem sofrer influências do combustível     
+        .if heliParaEsq == 0 
+            inc heliPos.y           ;incrementamos a coordenada y de cada elemento para irem mais para baixo da janela
+        .elseif
+            inc heliEPos.y
+        .endif
+
+        .if heli2ParaEsq == 0 
+            inc heliDoisPos.y           ;incrementamos a coordenada y de cada elemento para irem mais para baixo da janela
+        .elseif
+            inc heliEDoisPos.y
+        .endif
+
+        .if barcoParaEsq == 0 
+            inc barcoPos.y           ;incrementamos a coordenada y de cada elemento para irem mais para baixo da janela
+        .elseif
+            inc barcoEPos.y
+        .endif
+
+        .if barco2ParaEsq == 0 
+            inc barcoDoisPos.y           ;incrementamos a coordenada y de cada elemento para irem mais para baixo da janela
+        .elseif
+            inc barcoEDoisPos.y
+        .endif
+
         add fuelPos.y, 2
         inc explosaoPos.y
         xor ecx, ecx
@@ -615,28 +812,74 @@ Abaixa proc ;Procedimento chamado a cada segundo, para atualizar a coordenada y 
             mov dirPos.y, 1398
         .endif
 
-        add heliPos.y, ebx
-        add heliDoisPos.y, ebx
-        add barcoPos.y, ebx 
-        add barcoDoisPos.y, ebx 
+        .if heliParaEsq == 0 
+           add heliPos.y, ebx
+        .elseif
+            add heliEPos.y, ebx
+        .endif
+        
+        .if heli2ParaEsq == 0 
+           add heliDoisPos.y, ebx
+        .elseif
+            add heliEDoisPos.y, ebx
+        .endif
+
+        .if barcoParaEsq == 0 
+           add barcoPos.y, ebx
+        .elseif
+            add barcoEPos.y, ebx
+        .endif
+
+        .if barco2ParaEsq == 0 
+           add barcoDoisPos.y, ebx
+        .elseif
+            add barcoEDoisPos.y, ebx
+        .endif
+
         add fuelPos.y, ebx
         xor ecx, ecx    
     .endif
 
-    .if barcoPos.y > 465
-        mov barcoPos.y,0
-    .endif 
-
-    .if barcoDoisPos.y > 465
-        mov barcoDoisPos.y,0
+    .if barcoParaEsq == 0 
+        .if barcoPos.y > 465
+            mov barcoPos.y, 0
+        .endif
+    .elseif
+        .if barcoEPos.y > 465
+            mov barcoEPos.y, 0
+        .endif
     .endif
 
-    .if heliPos.y > 465
-        mov heliPos.y, 0
+    .if barco2ParaEsq == 0 
+        .if barcoDoisPos.y > 465
+            mov barcoDoisPos.y, 0
+        .endif
+    .elseif
+        .if barcoEDoisPos.y > 465
+            mov barcoEDoisPos.y, 0
+        .endif
     .endif
 
-    .if heliDoisPos.y > 465
-        mov heliDoisPos.y, 0
+
+    .if heliParaEsq == 0 
+        .if heliPos.y > 465
+            mov heliPos.y, 0
+        .endif
+    .elseif
+        .if heliEPos.y > 465
+            mov heliEPos.y, 0
+        .endif
+    .endif
+
+
+    .if heli2ParaEsq == 0 
+        .if heliDoisPos.y > 465
+            mov heliDoisPos.y, 0
+        .endif
+    .elseif
+        .if heliEDoisPos.y > 465
+            mov heliEDoisPos.y, 0
+        .endif
     .endif
     
     .if fuelPos.y > 485
@@ -651,12 +894,18 @@ VerificaSeAcertouHeli proc                  ;verificacao se o missel entrou em c
     xor ecx, ecx
     xor eax, eax
     
-    mov edx, heliPos.x                      ;guarda em edx a posicao 'x' do helicoptero
+    .if heliParaEsq == 0
+        mov edx, heliPos.x                      ;guarda em edx a posicao 'x' do helicoptero
+        mov ecx, heliPos.y                      ;guarda em ecx a posicao 'y' do helicoptero
+    .elseif
+        mov edx, heliEPos.x                      ;guarda em ecx a posicao 'y' do helicoptero
+        mov ecx, heliEPos.y                      ;guarda em ecx a posicao 'y' do helicoptero
+    .endif
+
     mov ebx, balaPos.x                      ;guarda em ebx a posicao x da bala
     sub ebx, edx                            ;subtrai de ebx e armazena em edx
 
     mov eax, balaPos.y                      ;guarda em eax a posicao 'y' da bala
-    mov ecx, heliPos.y                      ;guarda em ecx a posicao 'y' do helicoptero
     sub ecx, eax       
     
                          ;subtrai de eax e armazena em ecx
@@ -665,13 +914,35 @@ VerificaSeAcertouHeli proc                  ;verificacao se o missel entrou em c
     ;exibir explosao
     mov achou, 3
     xor ecx, ecx
-    mov ecx, heliPos.x
+
+    .if heliParaEsq == 0
+        mov ecx, heliPos.x
+    .elseif
+        mov ecx, heliEPos.x
+    .endif
+
     mov explosaoPos.x, ecx
 
     xor edx, edx
-    mov edx, heliPos.y
+
+    .if heliParaEsq == 0
+        mov edx, heliPos.y
+    .elseif
+        mov edx, heliEPos.y
+    .endif
+
     mov explosaoPos.y, edx
-    mov heliPos.x, 0      
+
+    .if heliParaEsq == 0
+        mov heliPos.x, 0
+        mov heliPos.y, 0
+    .elseif
+        mov heliEPos.x, 1000
+        mov heliPos.x, 0
+        mov heliPos.y, 0
+        mov heliParaEsq, 0
+    .endif
+
     mov balaPos.x, -20                      ;'apaga' a bala pois ela acertou o alvo
     invoke PlaySound, ADDR Play1, NULL, SND_FILENAME or SND_ASYNC ; SOM DE EXPLOSAO DO HELICOPTERO
     .endif
@@ -683,13 +954,19 @@ VerificaSeAcertouHeliDois proc                  ;verificacao se o missel entrou 
     xor ebx, ebx
     xor ecx, ecx
     xor eax, eax
-    
-    mov edx, heliDoisPos.x                      ;guarda em edx a posicao 'x' do helicoptero
+
+    .if heli2ParaEsq == 0
+        mov edx, heliDoisPos.x                      ;guarda em edx a posicao 'x' do helicoptero
+        mov ecx, heliDoisPos.y                      ;guarda em ecx a posicao 'y' do helicoptero
+    .elseif
+        mov edx, heliEDoisPos.x                      ;guarda em edx a posicao 'x' do helicoptero
+        mov ecx, heliEDoisPos.y                      ;guarda em ecx a posicao 'y' do helicoptero
+    .endif
+
     mov ebx, balaPos.x                      ;guarda em ebx a posicao x da bala
     sub ebx, edx                            ;subtrai de ebx e armazena em edx
 
     mov eax, balaPos.y                      ;guarda em eax a posicao 'y' da bala
-    mov ecx, heliDoisPos.y                      ;guarda em ecx a posicao 'y' do helicoptero
     sub ecx, eax       
     
                          ;subtrai de eax e armazena em ecx
@@ -698,13 +975,24 @@ VerificaSeAcertouHeliDois proc                  ;verificacao se o missel entrou 
     ;exibir explosao
     mov achou, 3
     xor ecx, ecx
-    mov ecx, heliDoisPos.x
-    mov explosaoPos.x, ecx
-
     xor edx, edx
-    mov edx, heliDoisPos.y
+
+    .if heli2ParaEsq == 0
+        mov ecx, heliDoisPos.x
+        mov edx, heliDoisPos.y
+    .elseif
+        mov ecx, heliEDoisPos.x
+        mov edx, heliEDoisPos.y
+    .endif
+
+    mov explosaoPos.x, ecx
     mov explosaoPos.y, edx
-    mov heliDoisPos.x, 660     
+    .if heli2ParaEsq == 0
+        mov heliDoisPos.x, 660  
+    .elseif
+        mov heliEDoisPos.x, 660   
+    .endif
+
     mov balaPos.x, -20                      ;'apaga' a bala pois ela acertou o alvo
     invoke PlaySound, ADDR Play1, NULL, SND_FILENAME or SND_ASYNC ; SOM DE EXPLOSAO DO HELICOPTERO
     .endif
@@ -717,25 +1005,43 @@ VerificaSeAcertouBarco proc
     xor ecx, ecx
     xor eax, eax
 
-    mov edx, barcoPos.x
+    .if barcoParaEsq == 0
+        mov edx, barcoPos.x                      ;guarda em edx a posicao 'x' do helicoptero
+        mov ecx, barcoPos.y                      ;guarda em ecx a posicao 'y' do helicoptero
+    .elseif
+        mov edx, barcoEPos.x                      ;guarda em edx a posicao 'x' do helicoptero
+        mov ecx, barcoEPos.y                      ;guarda em ecx a posicao 'y' do helicoptero
+    .endif
+
     mov ebx, balaPos.x
     sub ebx, edx
 
     mov eax, balaPos.y
-    mov ecx, barcoPos.y
     sub ecx, eax
  
     .if ecx <= 40 && ebx <= 40
        ;exibir explosao
        mov achou, 3
-      xor ecx, ecx
-      mov ecx, barcoPos.x
-      mov explosaoPos.x, ecx
+        xor ecx, ecx
+        xor edx, edx
 
-      xor edx, edx
-      mov edx, barcoPos.y
+    .if barcoParaEsq == 0
+        mov ecx, barcoPos.x
+        mov edx, barcoPos.y
+    .elseif
+        mov ecx, barcoEPos.x
+        mov edx, barcoEPos.y
+    .endif
+
+      mov explosaoPos.x, ecx
       mov explosaoPos.y, edx
-      mov barcoPos.x, 0  
+
+      .if barcoParaEsq == 0
+        mov barcoPos.x, 0  
+      .elseif
+        mov barcoEPos.x, 0  
+      .endif
+
       mov balaPos.x, -20                      ;'apaga' a bala pois ela acertou o alvo
       invoke PlaySound, ADDR Play1, NULL, SND_FILENAME or SND_ASYNC ; SOM DE EXPLOSAO DO BARCO
           
@@ -754,27 +1060,44 @@ VerificaSeAcertouBarcoDois proc
     xor ecx, ecx
     xor eax, eax
 
-    mov edx, barcoDoisPos.x
+    .if barco2ParaEsq == 0
+        mov edx, barcoDoisPos.x                      ;guarda em edx a posicao 'x' do helicoptero
+        mov ecx, barcoDoisPos.y                      ;guarda em ecx a posicao 'y' do helicoptero
+    .elseif
+        mov edx, barcoEDoisPos.x                      ;guarda em edx a posicao 'x' do helicoptero
+        mov ecx, barcoEDoisPos.y                      ;guarda em ecx a posicao 'y' do helicoptero
+    .endif
+
     mov ebx, balaPos.x
     sub ebx, edx
 
     mov eax, balaPos.y
-    mov ecx, barcoDoisPos.y
     sub ecx, eax
  
     .if ecx <= 40 && ebx <= 40
        ;exibir explosao
-       mov achou, 3
-      xor ecx, ecx
-      mov ecx, barcoDoisPos.x
-      mov explosaoPos.x, ecx
+        mov achou, 3
+        xor ecx, ecx
+        xor edx, edx
 
-      xor edx, edx
-      mov edx, barcoDoisPos.y
-      mov explosaoPos.y, edx
-      mov barcoDoisPos.x, 0  
-      mov balaPos.x, -20                      ;'apaga' a bala pois ela acertou o alvo
-      invoke PlaySound, ADDR Play1, NULL, SND_FILENAME or SND_ASYNC ; SOM DE EXPLOSAO DO HELICOPTERO
+        .if barco2ParaEsq == 0
+            mov ecx, barcoDoisPos.x
+            mov edx, barcoDoisPos.y
+        .elseif
+            mov ecx, barcoEDoisPos.x
+            mov edx, barcoEDoisPos.y
+        .endif
+      
+        mov explosaoPos.x, ecx
+        mov explosaoPos.y, edx
+
+        .if barco2ParaEsq == 0
+            mov barcoDoisPos.x, 0  
+        .elseif
+            mov barcoEDoisPos.x,0
+        .endif
+        mov balaPos.x, -20                      ;'apaga' a bala pois ela acertou o alvo
+        invoke PlaySound, ADDR Play1, NULL, SND_FILENAME or SND_ASYNC ; SOM DE EXPLOSAO DO HELICOPTERO
           
     .endif
 
@@ -1009,9 +1332,26 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos d
     ; ----------heliE
     invoke SelectObject,memDC,hBmp13  ; seleciona o novo bitmap
     mov hOld, eax     
-    INVOKE  TransparentBlt,hDC,500,500,32,23,memDC,0,0,32,23,CREF_TRANSPARENT 
+    INVOKE  TransparentBlt,hDC,heliEPos.x,heliEPos.y,32,23,memDC,0,0,32,23,CREF_TRANSPARENT 
+    INVOKE  TransparentBlt,hDC,heliEDoisPos.x,heliEDoisPos.y,32,23,memDC,0,0,32,23,CREF_TRANSPARENT 
 
+    ; ----------barcoE
+    invoke SelectObject,memDC,hBmp14  ; seleciona o novo bitmap
+    mov hOld, eax     
+    INVOKE  TransparentBlt,hDC,barcoEPos.x,barcoEPos.y,35,18,memDC,0,0,35,18,CREF_TRANSPARENT 
+    INVOKE  TransparentBlt,hDC,barcoEDoisPos.x,barcoEDoisPos.y,35,18,memDC,0,0,35,18,CREF_TRANSPARENT 
+
+    ; ----------win
+    invoke SelectObject,memDC,hBmp15  ; seleciona o novo bitmap
+    mov hOld, eax     
+    INVOKE  TransparentBlt,hDC,winPos.x,winPos.y,850,650,memDC,0,0,850,650,CREF_TRANSPARENT 
+
+    ; ----------game over
+    invoke SelectObject,memDC,hBmp16  ; seleciona o novo bitmap
+    mov hOld, eax     
+    INVOKE  TransparentBlt,hDC,gameOverPos.x,gameOverPos.y,850,650,memDC,0,0,850,650,CREF_TRANSPARENT 
     ;-------------------------------------------------------
+
     invoke SelectObject,hDC,hOld
     invoke DeleteDC,memDC
 

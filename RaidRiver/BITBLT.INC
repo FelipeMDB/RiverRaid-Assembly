@@ -89,6 +89,9 @@
     hInstance11   dd 0
     hInstance12   dd 0
     hInstance13   dd 0
+    hInstance14   dd 0
+    hInstance15   dd 0
+    hInstance16   dd 0
 
 
     hIcon         dd 0
@@ -106,7 +109,9 @@
 	  hBmp11        dd 0   
 	  hBmp12        dd 0   
 	  hBmp13        dd 0   
-
+	  hBmp14        dd 0  
+  	hBmp15        dd 0  
+  	hBmp16        dd 0  
 
     memDC2        DWORD 0 
     x	 		  dd 0
@@ -118,6 +123,11 @@
     count dd 0
     sera  dd 0
     acabouGasolina dd 0
+    heliParaEsq   dd 0
+    heli2ParaEsq   dd 0
+    barcoParaEsq    dd 0 
+    barco2ParaEsq   dd 0
+
     hitpoint 	    POINT <>
     posicao       POINT <>
     ThreadID 	  dd 0
@@ -139,6 +149,12 @@
     esqPos      POINT <>
     dirPos      POINT <>
     gasPos      POINT <>
+    heliEPos 	  POINT <>
+    heliEDoisPos 	  POINT <>
+    barcoEPos 	  POINT <>
+    barcoEDoisPos 	  POINT <>
+    winPos 	  POINT <>
+    gameOverPos 	  POINT <>
 
     hThreadDown 	 dd 0
     ThreadDownID  dd 0
