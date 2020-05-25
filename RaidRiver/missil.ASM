@@ -912,6 +912,7 @@ VerificaSeAcertouHeli proc                  ;verificacao se o missel entrou em c
     
     .if ecx <= 35 && ebx <= 35
     ;exibir explosao
+    add pontuacao, 10
     mov achou, 3
     xor ecx, ecx
 
@@ -973,6 +974,7 @@ VerificaSeAcertouHeliDois proc                  ;verificacao se o missel entrou 
     
     .if ecx <= 35 && ebx <= 35
     ;exibir explosao
+    add pontuacao, 10
     mov achou, 3
     xor ecx, ecx
     xor edx, edx
@@ -1021,6 +1023,7 @@ VerificaSeAcertouBarco proc
  
     .if ecx <= 40 && ebx <= 40
        ;exibir explosao
+      add pontuacao, 10
        mov achou, 3
         xor ecx, ecx
         xor edx, edx
@@ -1076,6 +1079,7 @@ VerificaSeAcertouBarcoDois proc
  
     .if ecx <= 40 && ebx <= 40
        ;exibir explosao
+        add pontuacao, 10
         mov achou, 3
         xor ecx, ecx
         xor edx, edx
@@ -1123,7 +1127,8 @@ VerificaFuel proc
     sub ecx, eax
  
     .if ecx <= 26 && ebx <= 46
-      add acelera, 58      
+      add acelera, 58
+      add pontuacao, 10      
 
       add tempo, 50
 
@@ -1351,6 +1356,13 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos d
     mov hOld, eax     
     INVOKE  TransparentBlt,hDC,gameOverPos.x,gameOverPos.y,850,650,memDC,0,0,850,650,CREF_TRANSPARENT 
     ;-------------------------------------------------------
+    szText pont, "Pontuacao:" 
+
+    invoke TextOut,hDC,450,550,ADDR pont,10
+
+    ;szText pontD, pontuacao                  ;18173
+    ;invoke TextOut,hDC,460,550,ADDR pontD,4
+
 
     invoke SelectObject,hDC,hOld
     invoke DeleteDC,memDC

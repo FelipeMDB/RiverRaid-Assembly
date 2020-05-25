@@ -122,6 +122,7 @@
     perdeu    dd 0
     count dd 0
     sera  dd 0
+    pontuacao dd 0
     acabouGasolina dd 0
     heliParaEsq   dd 0
     heli2ParaEsq   dd 0
