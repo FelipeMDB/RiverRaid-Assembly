@@ -366,11 +366,8 @@ WndProc proc hWin   :DWORD,
 
         mov explosaoPos.x,-100
 
-        mov esqPos.x, 0
-        mov esqPos.y, 1398
-
-        mov dirPos.x, 680
-        mov dirPos.y, 1398
+        mov terraPos.x, 0
+        mov terraPos.y, 1398
 
         mov gasPos.x, 520
         mov gasPos.y, 525
@@ -776,14 +773,9 @@ Abaixa proc ;Procedimento chamado a cada segundo, para atualizar a coordenada y 
         inc explosaoPos.y
         xor ecx, ecx
 
-        sub esqPos.y, 2
-        .if esqPos.y <= 10
-            mov esqPos.y, 1398
-        .endif
-
-        sub dirPos.y, 2
-        .if dirPos.y <= 10
-            mov dirPos.y, 1398
+        sub terraPos.y, 2
+        .if terraPos.y <= 10
+            mov terraPos.y, 1398
         .endif
 
     .elseif                   ;se o valor da variável acelerafor diferente de zero, 
@@ -802,14 +794,9 @@ Abaixa proc ;Procedimento chamado a cada segundo, para atualizar a coordenada y 
             mov ebx, 15
         .endif
 
-        sub esqPos.y, ebx
-        .if esqPos.y <= 10
-            mov esqPos.y, 1398
-        .endif
-
-        sub dirPos.y, ebx
-        .if dirPos.y <= 10
-            mov dirPos.y, 1398
+        sub terraPos.y, ebx
+        .if terraPos.y <= 10
+            mov terraPos.y, 1398
         .endif
 
         .if heliParaEsq == 0 
@@ -1255,9 +1242,10 @@ VerificaSePerdeu proc
 VerificaSePerdeu endp 
 
 Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos da tela
-
+    LOCAL hfont:HFONT 
     LOCAL hOld:DWORD
     LOCAL memDC :DWORD
+    LOCAL aux:DWORD
   
     invoke CreateCompatibleDC,hDC
     mov memDC, eax
@@ -1307,12 +1295,12 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos d
     ;----------terraEsquerda
     invoke SelectObject,memDC,hBmp9  ; seleciona o novo bitmap
     mov hOld, eax     
-    INVOKE  TransparentBlt,hDC, 0,esqPos.x, 142,800,memDC,0,esqPos.y,142,800,CREF_TRANSPARENT  
+    INVOKE  TransparentBlt,hDC, 0,terraPos.x, 142,800,memDC,0,terraPos.y,142,800,CREF_TRANSPARENT  
     
     ;----------terraDireita
     invoke SelectObject,memDC,hBmp10  ; seleciona o novo bitmap
     mov hOld, eax     
-    INVOKE  TransparentBlt,hDC,dirPos.x,0,160,800,memDC,0,dirPos.y,150,800,CREF_TRANSPARENT  
+    INVOKE  TransparentBlt,hDC,terraPos.x,0,160,800,memDC,0,terraPos.y,150,800,CREF_TRANSPARENT  
 
     ; ----------placar
     invoke SelectObject,memDC,hBmp8  ; seleciona o novo bitmap
@@ -1356,12 +1344,20 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos d
     mov hOld, eax     
     INVOKE  TransparentBlt,hDC,gameOverPos.x,gameOverPos.y,850,650,memDC,0,0,850,650,CREF_TRANSPARENT 
     ;-------------------------------------------------------
-    szText pont, "Pontuacao:" 
+    szText pont, "Pontuacao"
 
-    invoke TextOut,hDC,450,550,ADDR pont,10
-
-    ;szText pontD, pontuacao                  ;18173
-    ;invoke TextOut,hDC,460,550,ADDR pontD,4
+    ;invoke CreateFont,24,16,0,0,400,0,0,0,OEM_CHARSET,\ OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,\ DEFAULT_QUALITY,DEFAULT_PITCH or FF_SCRIPT,\ ADDR FontName   ;r
+    ;invoke SelectObject, hDC, eax 
+    ;mov hfont,eax 
+    RGB 200,200,50
+    invoke SetTextColor,hDC,eax
+    RGB 105,105,105 
+    invoke SetBkColor,hDC,eax
+    ;invoke SetTextSize, 18
+    invoke TextOut,hDC,640,530,ADDR pont,10
+ 
+    mov aux, 12                  ;18173  
+    invoke TextOut,hDC,640,535, addr aux, 4
 
 
     invoke SelectObject,hDC,hOld
