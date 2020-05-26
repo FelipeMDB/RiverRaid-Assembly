@@ -978,9 +978,11 @@ VerificaSeAcertouHeliDois proc                  ;verificacao se o missel entrou 
     mov explosaoPos.x, ecx
     mov explosaoPos.y, edx
     .if heli2ParaEsq == 0
-        mov heliDoisPos.x, 660  
+        mov heliDoisPos.x, 0 
+        mov heliDoisPos.y,0
     .elseif
         mov heliEDoisPos.x, 660   
+        mov heliEDoisPos.y,0
     .endif
 
     mov balaPos.x, -20                      ;'apaga' a bala pois ela acertou o alvo
@@ -1028,9 +1030,11 @@ VerificaSeAcertouBarco proc
       mov explosaoPos.y, edx
 
       .if barcoParaEsq == 0
-        mov barcoPos.x, 0  
+        mov barcoPos.x, 142  
+        mov barcoPos.y, 0
       .elseif
-        mov barcoEPos.x, 0  
+        mov barcoEPos.x, 625
+        mov barcoEPos.y, 0
       .endif
 
       mov balaPos.x, -20                      ;'apaga' a bala pois ela acertou o alvo
@@ -1086,7 +1090,8 @@ VerificaSeAcertouBarcoDois proc
         .if barco2ParaEsq == 0
             mov barcoDoisPos.x, 0  
         .elseif
-            mov barcoEDoisPos.x,0
+            mov barcoEDoisPos.x,625
+            mov barcoEDoisPos.y,0
         .endif
         mov balaPos.x, -20                      ;'apaga' a bala pois ela acertou o alvo
         invoke PlaySound, ADDR Play1, NULL, SND_FILENAME or SND_ASYNC ; SOM DE EXPLOSAO DO HELICOPTERO
