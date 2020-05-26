@@ -1190,7 +1190,7 @@ VerificaSePerdeu proc
         mov ecx, heliPos.y
         sub ecx, eax
         inc aux
-        jmp ok
+        jmp loopVerifica
 
     .elseif aux == 1
         mov edx, barcoPos.x
@@ -1201,7 +1201,7 @@ VerificaSePerdeu proc
         mov ecx, barcoPos.y
         sub ecx, eax
         inc aux
-        jmp ok
+        jmp loopVerifica
     .elseif aux == 2
         mov edx, heliDoisPos.x
         mov ebx, aviaoPos.x
@@ -1211,7 +1211,7 @@ VerificaSePerdeu proc
         mov ecx, heliDoisPos.y
         sub ecx, eax
         inc aux
-        jmp ok
+        jmp loopVerifica
     .elseif aux == 3
         mov edx, barcoDoisPos.x
         mov ebx, aviaoPos.x
@@ -1221,7 +1221,7 @@ VerificaSePerdeu proc
         mov ecx, barcoDoisPos.y
         sub ecx, eax
         inc aux
-        jmp ok
+        jmp loopVerifica
     .elseif aux == 4
         mov edx, heliEDoisPos.x
         mov ebx, aviaoPos.x
@@ -1231,7 +1231,7 @@ VerificaSePerdeu proc
         mov ecx, heliEDoisPos.y
         sub ecx, eax
         inc aux
-        jmp ok
+        jmp loopVerifica
     .elseif aux == 5
         mov edx, heliEPos.x
         mov ebx, aviaoPos.x
@@ -1241,7 +1241,7 @@ VerificaSePerdeu proc
         mov ecx, heliEPos.y
         sub ecx, eax
         inc aux
-        jmp ok
+        jmp loopVerifica
     .elseif aux == 6
         mov edx, barcoEPos.x
         mov ebx, aviaoPos.x
@@ -1251,7 +1251,7 @@ VerificaSePerdeu proc
         mov ecx, barcoEPos.y
         sub ecx, eax
         inc aux
-        jmp ok
+        jmp loopVerifica
     .elseif aux == 7
         mov edx, barcoEDoisPos.x
         mov ebx, aviaoPos.x
@@ -1261,12 +1261,12 @@ VerificaSePerdeu proc
         mov ecx, barcoEDoisPos.y
         sub ecx, eax
         inc aux
-        jmp ok
+        jmp loopVerifica
     .elseif aux == 8
         ret
     .endif
 
-    ok:
+    loopVerifica:
         .if ecx <= 20 && ebx <= 20
             xor ecx, ecx
             mov ecx, aviaoPos.x
@@ -1320,10 +1320,6 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos d
             invoke SelectObject,memDC,hBmp5  ; selecionei o novo bitmap
             mov hOld, eax     
             INVOKE  TransparentBlt,hDC,balaPos.x,balaPos.y,10,19,memDC,0,0,10,19,CREF_TRANSPARENT 
-            ;sub balaPos.y, 25
-            ;INVOKE  TransparentBlt,hDC,balaPos.x,balaPos.y,10,19,memDC,0,0,10,19,CREF_TRANSPARENT 
-            ;sub balaPos.y, 23
-            ;INVOKE  TransparentBlt,hDC,balaPos.x,balaPos.y,10,19,memDC,0,0,10,19,CREF_TRANSPARENT 
         .endif
             
     .endif
@@ -1397,7 +1393,7 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos d
     ;invoke SetTextSize, 18
     invoke TextOut,hDC,640,530,ADDR pont,10
  
-    mov aux, 12                  ;18173  
+    mov aux, "0"                  ;18173  
     invoke TextOut,hDC,640,555, addr aux, 4
 
 
@@ -1413,17 +1409,17 @@ Paint_Proc endp
 ThreadProc PROC USES ecx Param:DWORD  ;Thread executada para desenhar o bitmap do avião
 
     invoke WaitForSingleObject,hEventStart,100000 ;define o timer, de quanto em quanto tempo essa thread será chamada
-
-	.IF eax == WAIT_TIMEOUT	
+ 
+	.IF eax == WAIT_TIMEOUT	                       ;se o tempo definido acima acabou
 	    invoke PostMessage,hWnd,WM_FINISH,NULL,NULL
 	    jmp   ThreadProc     
 
 	.ELSEIF eax == WAIT_OBJECT_0	
 	    invoke PostMessage,hWnd,WM_FINISH,NULL,NULL
-	    jmp   ThreadProc
+	    jmp   ThreadProc                           ;inicia essa thread de novo
     .ENDIF
         
-    jmp   ThreadProc
+    jmp   ThreadProc                                ;inicia essa thread de novo
         
     ret
 ThreadProc ENDP
@@ -1432,12 +1428,12 @@ ThreadBarcoProc PROC USES ecx Param:DWORD         ;Thread executada para desenha
 
     invoke WaitForSingleObject,hEventStart,20     ;define o timer, de quanto em quanto tempo essa thread será chamada
 
-	.IF eax == WAIT_TIMEOUT	
+	.IF eax == WAIT_TIMEOUT	                          ;se o tempo definido acima acabou
 	    invoke PostMessage,hWnd,WM_BARCO,NULL,NULL
-	    jmp   ThreadBarcoProc     
+	    jmp   ThreadBarcoProc                         ;inicia essa thread de novo
     .ENDIF
         
-    jmp   ThreadBarcoProc
+    jmp   ThreadBarcoProc                              ;inicia essa thread de novo
         
     ret
 ThreadBarcoProc ENDP
@@ -1446,12 +1442,12 @@ ThreadHeliProc PROC USES ecx Param:DWORD          ;Thread executada para desenha
 
     invoke WaitForSingleObject,hEventStart,10     ;define o timer, de quanto em quanto tempo essa thread será chamada ;INFINITE
     
-	.IF eax == WAIT_TIMEOUT	
+	.IF eax == WAIT_TIMEOUT	                        ;se o tempo definido acima acabou
 	    invoke PostMessage,hWnd,WM_HELI,NULL,NULL
-	    jmp   ThreadHeliProc     
+	    jmp   ThreadHeliProc                       ;inicia essa thread de novo
     .ENDIF
         
-    jmp   ThreadHeliProc
+    jmp   ThreadHeliProc                            ;inicia essa thread de novo
         
     ret
 ThreadHeliProc ENDP
@@ -1460,9 +1456,9 @@ ThreadBalaProc PROC USES ecx Param:DWORD             ;Thread executada para dese
 
     invoke WaitForSingleObject,hEventStart,1         ;define o timer, de quanto em quanto tempo essa thread será chamada
 
-	.IF eax == WAIT_TIMEOUT	
+	.IF eax == WAIT_TIMEOUT	                           ;se o tempo definido acima acabou
 	    invoke PostMessage,hWnd,WM_BALA,NULL,NULL
-	    jmp   ThreadBalaProc     
+	    jmp   ThreadBalaProc                         ;inicia essa thread de novo
     .ENDIF
         
     jmp   ThreadBalaProc
