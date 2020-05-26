@@ -2,7 +2,7 @@
     ;Ana Clara Sampaio Pires   - 18201
     ;Ariane Paula Barros       - 18173
     ;Felipe Melchior de Britto - 18200  
-    
+
 ;     include files
 ;     ~~~~~~~~~~~~~
     include \MASM32\INCLUDE\windows.inc
@@ -75,7 +75,7 @@
       ret
     ENDM
 
-.data
+.data ;variáveis que começam zeradas
     szDisplayName db "Raid River",0
     CommandLine   dd 0
     hWnd          dd 0
@@ -175,19 +175,10 @@
     SuccessString db "Você perdeu!Deseja jogar novamente?",0
   	EventStop BOOL FALSE
 
-.data? 
-;hInstance HINSTANCE ? 
-;CommandLine LPSTR ? 
+.data?         ;variáveis sem valor inicial
 hwnd HANDLE ? 
-;ThreadID DWORD ?
-;RECT STRUCT
-   ; left    DWORD  ?
-    ;top     DWORD  ?
-   ; right   DWORD  ?
-   ; bottom  DWORD  ?
-;RECT ENDS
 
-.const
+.const         ;constantes
 	IDM_EXIT equ 1     
 	WM_FINISH equ WM_USER+100h
   WM_BARCO   equ WM_USER+101h
