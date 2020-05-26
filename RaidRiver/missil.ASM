@@ -1,3 +1,7 @@
+    ;Ana Clara Sampaio Pires   - 18201
+    ;Ariane Paula Barros       - 18173
+    ;Felipe Melchior de Britto - 18200  
+    
     .386
     .model flat, stdcall  ; 32 bit memory model
     option casemap :none  ; case sensitive
@@ -332,7 +336,7 @@ WndProc proc hWin   :DWORD,
     LOCAL Ps     :PAINTSTRUCT
     LOCAL Rect   :RECT
 
-    mov Rect.left, 0
+    mov Rect.left, 0   ;definem as coordenadas da área que querendo que seja atualizada
     mov Rect.top, 0
     mov Rect.bottom, 800
     mov Rect.right, 1000000
@@ -341,8 +345,6 @@ WndProc proc hWin   :DWORD,
 		mov eax,wParam
 
     .elseif uMsg == WM_CREATE                                         ;instancia posições
-        ;mov	aviaoAtual, 0 
-
         ;Posicionamento inicial de cada componente, suas coordenadas x e y             
 		mov aviaoPos.y, 450                    
 		mov aviaoPos.x, 370  
@@ -399,7 +401,8 @@ WndProc proc hWin   :DWORD,
 		invoke CreateEvent,NULL,FALSE,FALSE,NULL
 		mov    hEventStart,eax
 
-		mov    eax,OFFSET ThreadProc
+        ;cria todas as threads que iremos usar
+		mov    eax,OFFSET ThreadProc       
 		invoke CreateThread,NULL,NULL,eax,\
 		                    NULL,NORMAL_PRIORITY_CLASS,\
 		                    ADDR ThreadID
@@ -429,9 +432,11 @@ WndProc proc hWin   :DWORD,
 		                    ADDR ThreadDownID
 		mov    hThreadDown,eax
 
-        
-        szText inicio,"PREPARE-SE!"
-        invoke MessageBox,hWin,ADDR inicio,ADDR szDisplayName,MB_OK
+        ;message box para avisar o usuário que o jogo irá iniciar assim
+        ;que ele selecionar "OK", desse modo, o jogo não começa
+        ;automaticamente, dando tempo para o usuário se preparar e não ser prejudicado
+        szText inicio,"PREPARE-SE!"    ;definição da constante que será o texto exibido
+        invoke MessageBox,hWin,ADDR inicio,ADDR szDisplayName,MB_OK ;criação, definição(do tipo OK) e exibição da message box
 		
 
     .elseif uMsg == WM_SIZE
@@ -444,93 +449,87 @@ WndProc proc hWin   :DWORD,
 		mov eax,lParam
 		shr eax,16
 		mov hitpoint.y,eax
-		;invoke InvalidateRect,hWnd,NULL,TRUE
 
-    .elseif uMsg == WM_KEYDOWN
+    .elseif uMsg == WM_KEYDOWN ;thread disparada sempre que uma tecla for pressionada
         mov     eax,lParam
         and     eax, 000Fh
         
-    .if wParam == VK_RIGHT
-        .if aviaoPos.x<650
-            add aviaoPos.x, 10
+    .if wParam == VK_RIGHT   ;se o usuário pressionou a seta da direita, movimentamos o avião para a direita
+        .if aviaoPos.x<650     ;verifica se é possível ir para a direita sem ultrapassar os limites da área que o avião pode ficar
+            add aviaoPos.x, 10 ;incrementamos 1 na coordenada x do avião, para ir para a direita
         .endif
         
-    .elseif wParam == VK_LEFT
-        .if aviaoPos.x>158
-            sub aviaoPos.x, 20
+    .elseif wParam == VK_LEFT   ;se o usuário pressionou a seta da esquerda, movimentamos o avião para a esquerda
+        .if aviaoPos.x>158      ;verifica se é possível ir para a esquerda sem ultrapassar os limites da área que o avião pode ficar
+            sub aviaoPos.x, 20  ;subtraímos 1 na coordenada x do avião, para ir para a esquerda
         .endif
 
-    .elseif wParam == VK_UP 
-        inc somDeTiro
-        .if somDeTiro == 1
+    .elseif wParam == VK_UP ;se o usuário pressionou a seta para cima, ele atirou uma bala
+        inc somDeTiro       ;incrementa variável controle lógico de tiros feitos
+        .if somDeTiro == 1  ;verificação para tocarmos o som do tiro
             invoke PlaySound, ADDR Play4, NULL, SND_FILENAME or SND_ASYNC ; SOM DA BALA
         .endif
         mov ecx, aviaoPos.x
         add ecx, 13
-        mov balaPos.x, ecx
+        mov balaPos.x, ecx   ;posicionamos a bala de modo a ficar alinhada à coordenada x atual do avião
         mov ebx, aviaoPos.y
-        mov balaPos.y, ebx
-        inc atirou
-        dec somDeTiro
+        add ebx, 2
+        mov balaPos.y, ebx   ;posicionamos a bala de modo a iniciar logo acima da coordenada y do avião
+        inc atirou           
+        dec somDeTiro        ;decrementa variável de controle lógico para tocarmos o som do tiro somente 1 vez a cada vez que o jogoador atirar a bala
     .endif
 
-     .elseif uMsg == WM_PAINT
-        invoke BeginPaint,hWin,ADDR Ps
-        mov hDC, eax
-        invoke Paint_Proc,hWin,hDC
-        invoke EndPaint,hWin,ADDR Ps
+     .elseif uMsg == WM_PAINT ;se a tela está desatualizada, devemos pintar todos os seus elementos novamente
+        invoke BeginPaint,hWin,ADDR Ps 
+        mov hDC, eax                    ;o registrador eax possui todos os dados atuais da tela, portanto, passamos seus valores para a variavel hDC para pintar a tela
+        invoke Paint_Proc,hWin,hDC      ;chama o método Paint, com seus respectivos parâmetros
+        invoke EndPaint,hWin,ADDR Ps    ;interrompe a pintura assim que já tenha pintado tudo
         return 0
-    .elseif uMsg==WM_BALA
-		 .if atirou >= 1
-            sub balaPos.y, 1
+    .elseif uMsg==WM_BALA    ;atualiza a posição da bala atirada
+		 .if atirou >= 1     ;verifica se o usuário atirou agora
+            dec balaPos.y    ;se atirou, decrementamos a posição y da bala  para essa "ir para frente""
         .endif
 
    .elseif uMsg==WM_FINISH        
-		invoke InvalidateRect,hWnd,NULL,TRUE
 
     .elseif uMsg==WM_BARCO             ;chamado da thread a cada passo de seu timer
-        invoke VerificaSePerdeu         
-        invoke VerificaSeAcertouBarco
-        invoke VerificaSeAcertouBarcoDois
+        invoke VerificaSePerdeu        ;verifica se perdeu, ou seja, se o avião está na mesma posição de algum obstáculo
+        invoke VerificaSeAcertouBarco  ;verifica se acertou no barco número 1, ou seja, se o avião está na mesma posição do barco
+        invoke VerificaSeAcertouBarcoDois ;verifica se acertou no barco número 2, ou seja, se o avião está na mesma posição do barco 2
 
-        .if barcoParaEsq == 0
-            inc barcoPos.x                    ;incrementa a posição do helicóptero 1, para ele se movimentar para a direita
+        .if barcoParaEsq == 0                 ;verifica se o barco 1 deve trocar de direção
+            inc barcoPos.x                    ;incrementa a posição do barco 1, para ele se movimentar para a direita
 
-            .if barcoPos.x > 650              ;verifica se a posição x do helicóptero 1 passou do limite
+            .if barcoPos.x > 650              ;verifica se a posição x do barco 1 passou do limite
                 xor ecx, ecx
-                mov ecx, barcoPos.y
-                mov barcoEPos.y, ecx
+                mov ecx, barcoPos.y 
+                mov barcoEPos.y, ecx          ;o barco que navega para a esquerda recebe a posição y do barco que navega para a direita
 
                 xor ecx, ecx
                 mov ecx, barcoPos.x
-                mov barcoEPos.x, ecx
-                mov barcoPos.y, 1000
+                mov barcoEPos.x, ecx          ;o barco que navega para a esquerda recebe a posição x do barco que navega para a direita
+                mov barcoPos.y, 1000          ;posiciona o outro barco fora do campo de visão do jogador
 
-                mov barcoParaEsq, 1
+                mov barcoParaEsq, 1           ;atualizamos a variável de controle lógico
             .endif
         .elseif
-            dec barcoEPos.x
+            dec barcoEPos.x                    ;decrementamos a posição do barco de modo a faze-lo naavegar para a esquerda
 
-            .if barcoEPos.x < 145              ;verifica se a posição x do helicóptero 1 passou do limite
+            .if barcoEPos.x < 145              ;verifica se a posição x do barco passou do limite
                 xor ecx, ecx
                 mov ecx, barcoEPos.y
-                mov barcoPos.y, ecx
+                mov barcoPos.y, ecx            ;o barco que navega para a esquerda chegou ao outro lado, portanto, posicionamos o barco que navega para a direita em sua coordenada y
 
                 xor ecx, ecx
                 mov ecx, barcoEPos.x 
-                mov barcoPos.x, ecx
-                mov barcoEPos.y, 1000
+                mov barcoPos.x, ecx            ;o barco que navega para a esquerda chegou ao outro lado, portanto, posicionamos o barco que navega para a direita em sua coordenada x
+                mov barcoEPos.y, 1000          ;posiciona o barco fora do campo de visão do jogador
 
                 mov barcoParaEsq, 0
             .endif
         .endif
-        ; inc barcoPos.x
-         
-        ; .if barcoPos.x > 655       ;verifica se a posição x do barco 1 passou do limite
-        ;     mov barcoPos.x,162     ;se passou, mudamos sua coordenada x para sua posição inicial, onde pode ser visto na tela
-        ; .endif  
 
-        .if barco2ParaEsq == 0
+        .if barco2ParaEsq == 0                    ;esse trecho de código segue a mesma lógica do trecho acima
             inc barcoDoisPos.x                    ;incrementa a posição do helicóptero 1, para ele se movimentar para a direita
 
             .if barcoDoisPos.x > 655              ;verifica se a posição x do helicóptero 1 passou do limite
@@ -560,21 +559,15 @@ WndProc proc hWin   :DWORD,
 
                 mov barco2ParaEsq, 0
             .endif
-        .endif
+        .endif 
 
-        ; inc barcoDoisPos.x         ;incrementa a posição do barco, para ele "ir para frente"
-        
-        ; .if barcoDoisPos.x > 655   ;verifica se a posição x do barco 2 passou do limite
-        ;     mov barcoDoisPos.x,162 ;se passou, mudamos sua coordenada x para sua posição inicial, onde pode ser visto na tela
-        ; .endif    
-
-    .elseif uMsg==WM_HELI
-        invoke VerificaSePerdeu
+    .elseif uMsg==WM_HELI                ;chamado da thread a cada passo de seu timer
+        invoke VerificaSePerdeu          ;verifica se perdeu, ou seja, se o avião está na mesma posição de algum obstáculo
         invoke VerificaFuel              ;verifica se o jogador passou pela posição do combustível
-        invoke VerificaSeAcertouHeli     ;verifica se o jogador passou pela posição do helicóptero 1
-        invoke VerificaSeAcertouHeliDois ;verifica se o jogador passou pela posição do helicóptero 2
+        invoke VerificaSeAcertouHeli     ;verifica se o jogador atirou na posição do helicóptero 1
+        invoke VerificaSeAcertouHeliDois ;verifica se o jogador atirou na posição do helicóptero 2
        
-        .if heliParaEsq == 0
+        .if heliParaEsq == 0             ;esse trecho de código tabmém sgue a mesma lógica dos trechos acima, apenas muda que mexe com helicópteros
             inc heliPos.x                    ;incrementa a posição do helicóptero 1, para ele se movimentar para a direita
 
             .if heliPos.x > 655              ;verifica se a posição x do helicóptero 1 passou do limite
@@ -606,7 +599,7 @@ WndProc proc hWin   :DWORD,
             .endif
         .endif
 
-        .if heli2ParaEsq == 0
+        .if heli2ParaEsq == 0                    ;esse trecho de código tabmém sgue a mesma lógica dos trechos acima, apenas muda que mexe com helicópteros
             inc heliDoisPos.x                    ;incrementa a posição do helicóptero 1, para ele se movimentar para a direita
 
             .if heliDoisPos.x > 655              ;verifica se a posição x do helicóptero 1 passou do limite
@@ -639,15 +632,17 @@ WndProc proc hWin   :DWORD,
         .endif
         
 
-     .elseif uMsg==WM_DOWN               ;chamado da thread a cada passo de seu timer     
-            invoke Abaixa                ;chama procedimento que incrementa a coordenada y dos elementos da tela, para dar a impressão que o avião está indo para frente
-            invoke InvalidateRect,hWnd, addr Rect,TRUE   ;Atualiza a tela, redesenhando a áerea delimitada pelo Rec de novo
+     .elseif uMsg==WM_DOWN                                 ;chamado da thread a cada passo de seu timer     
+            .if evitaLoop < 4 ;verificação para não atualizar a tela quando o usuário perde, para a imagem não ficar piscando
+                invoke Abaixa                              ;chama procedimento que incrementa a coordenada y dos elementos da tela, para dar a impressão que o avião está indo para frente
+                invoke InvalidateRect,hWnd, addr Rect,TRUE ;Atualiza a tela, redesenhando a áerea delimitada pelo Rec de novo
+            .endif
 
-    .elseif uMsg == WM_CLOSE             ;verifica se o jogador quer fechar a tela e parar a execução
+    .elseif uMsg == WM_CLOSE                               ;verifica se o jogador quer fechar a tela e parar a execução
         szText perg,"Tem certeza que deseja sair?"         ;mensagem de confirmação exibida para o usuário confirmar sua saída
         invoke MessageBox,hWin,ADDR perg,ADDR szDisplayName,MB_YESNO ;criação da MessageBox, com as opções sim ou não, com o texto acima
-          .if eax == IDNO   ;se o jogador não quer fechar o progama
-            return 0        ;retorna zero, voltando à execução do jogo normalmente
+          .if eax == IDNO                                  ;se o jogador não quer fechar o progama
+            return 0                                       ;retorna zero, voltando à execução do jogo normalmente
           .endif
 
     .elseif uMsg == WM_DESTROY       ;se o programa for fechado
@@ -657,15 +652,15 @@ WndProc proc hWin   :DWORD,
 
     invoke DefWindowProc,hWin,uMsg,wParam,lParam   ;define o estado atual da janela, atualizando suas características
     ret
-WndProc endp                ;término da definição do procedimento
+WndProc endp                                                  ;término da definição do procedimento
 
-verifica proc hWin:DWORD,uMsg:DWORD,wParam:DWORD,lParam:DWORD ;Procedimento chamado quando o usuário perdeu, pergunta se ele quer jogar novamente ou sair
+verifica proc hWin:DWORD,uMsg:DWORD,wParam:DWORD,lParam:DWORD ;Procedimento chamado quando o usuário perdeu, pergunta se ele quer jogar novamente ou sair    
        
-        mov evitaLoop, 2                                                   ;necesário para não entrar em loop e exibir diversas vezes na execução repetida da chamada desse procedimento
-        .if perdeu > 0                                                ;verifica se foi atingido ou se sua gasolina acabou                                       ;verifica se perdeu porque foi atingido por um obstáculo
+        .if perdeu > 0                                        ;verifica se foi atingido ou se sua gasolina acabou                                       ;verifica se perdeu porque foi atingido por um obstáculo
             mov aviaoPos.x,0
-            mov gameOverPos.x,0
+            mov gameOverPos.x,0                  ;posicionamos a imagem Game Over de modo a cobrir toda a janela
             mov gameOverPos.y,0
+            mov evitaLoop, 3                    ;variável de controle lógico para esse método não ser chamado mais de uma vez
             invoke PlaySound, ADDR Play2, NULL, SND_FILENAME or SND_ASYNC ; SOM DE EXPLOSAO DA NAVE
             invoke PlaySound, ADDR Play3, NULL, SND_FILENAME or SND_ASYNC ; SOM DE DERROTA
             szText msg,"Voce foi atingido!"                           ;cria a variavel contendo o texto que será a mensagem
@@ -702,10 +697,12 @@ TopXY endp
 Abaixa proc ;Procedimento chamado a cada segundo, para atualizar a coordenada y de cada elemento da tela
             ;para criar a impressão que o avião está se movimentando para frente, quando na verdade são os outros
             ;elementos que estão "indo para baixo"
-    .if evitaLoop == 0      ;se o usuário não perdeu o jogo até agora
+    .if evitaLoop == 0      ;se o usuário não perdeu o jogo até agora  
         .if perdeu > 0  || acabouGasolina > 0 ;verifica se acabou de perder
             invoke verifica, NULL,NULL,NULL, NULL ;chamada do procedimento para interromper e avisar o jogador que perdeu
         .endif
+    .elseif
+        inc evitaLoop ;incrementamos a variável de controle da chamada do procedimento Verifica
     .endif
     .if tempo > 0     ;se o tempo de vida não acabou
         dec tempo     ;decrementamos 1 segundo de seu tempo de vida
@@ -745,57 +742,28 @@ Abaixa proc ;Procedimento chamado a cada segundo, para atualizar a coordenada y 
     .endif
     dec achou                   ;diminuimos o tempo em que a explosão será exibida
 
-    .if acelera == 0            ;se a velocidade da movimentação da tela é a original, sem sofrer influências do combustível     
-        .if heliParaEsq == 0 
-            inc heliPos.y           ;incrementamos a coordenada y de cada elemento para irem mais para baixo da janela
-        .elseif
-            inc heliEPos.y
-        .endif
-
-        .if heli2ParaEsq == 0 
-            inc heliDoisPos.y           ;incrementamos a coordenada y de cada elemento para irem mais para baixo da janela
-        .elseif
-            inc heliEDoisPos.y
-        .endif
-
-        .if barcoParaEsq == 0 
-            inc barcoPos.y           ;incrementamos a coordenada y de cada elemento para irem mais para baixo da janela
-        .elseif
-            inc barcoEPos.y
-        .endif
-
-        .if barco2ParaEsq == 0 
-            inc barcoDoisPos.y           ;incrementamos a coordenada y de cada elemento para irem mais para baixo da janela
-        .elseif
-            inc barcoEDoisPos.y
-        .endif
-
-        add fuelPos.y, 2
-        inc explosaoPos.y
-        xor ecx, ecx
-
-        sub terraPos.y, 2
-        .if terraPos.y <= 10
-            mov terraPos.y, 1398
-        .endif
-
-    .elseif                   ;se o valor da variável acelerafor diferente de zero, 
-                              ;o jogador passou pelo combústivel, então devemos acelerar a movimentação da tela
-        .if acelera <= 10     ;se o efeito do combustível estiver acabando
+        .if acelera == 0
+            ;dec acelera       ;decrementamos acelera, que funciona como um timer
+            xor ebx, ebx      ;limpamos o registrador para usá-lo como auxiliar
+            mov ebx, 1        ;valor que será decrementado das posições y dos elementos, velocidade normal
+        .elseif acelera <= 10 ;se o efeito do combustível estiver acabando
             dec acelera       ;decrementamos acelera, que funciona como um timer
             xor ebx, ebx      ;limpamos o registrador para usá-lo como auxiliar
-            mov ebx, 3        ;atribuimos ao registrador o valor que 
+            mov ebx, 3        ;valor que será decrementado das posições y dos elementos, velocidade mínima 
         .elseif acelera <= 20 ;se devemos acelerar, mas não na velocidade máxima
             dec acelera       ;decrementamos acelera, que funciona como um timer
             xor ebx, ebx      ;limpamos o registrador para usá-lo como auxiliar
-            mov ebx, 8
+            mov ebx, 8        ;valor que será decrementado das posições y dos elementos, velocidade média
         .elseif               ;se devemos acelerar na velocidade máxima
             dec acelera       ;decrementamos acelera, que funciona como um timer
             xor ebx, ebx      ;limpamos o registrador para usá-lo como auxiliar
-            mov ebx, 15
+            mov ebx, 15       ;valor que será decrementado das posições y dos elementos, velocidade máxima
         .endif
+        ;os próximos trechos de código seguem a mesma lógica do trecho abaixo:
+        ;diminuir a posição y de todos os elementos da tela, para move-los para baixo, dando a impressão que o avião está indo para frente 
+        ;depois de abaixá-los, verificamos se alcançaram seu limite e, se alcançaram, os reposicionamos em suas posições corretas(dentro do campo de visão do usuário)
 
-        sub terraPos.y, ebx
+        sub terraPos.y, ebx   
         .if terraPos.y <= 10
             mov terraPos.y, 1398
         .endif
@@ -873,9 +841,8 @@ Abaixa proc ;Procedimento chamado a cada segundo, para atualizar a coordenada y 
     .if fuelPos.y > 485
         mov fuelPos.y, 0
     .endif
-    .endif
 Abaixa ENDP
-
+;os próximos 5 procedimentos têm a mesma lógica, comentada em VerificaSeAcertouHeli
 VerificaSeAcertouHeli proc                  ;verificacao se o missel entrou em contato com helicoptero
     xor edx, edx                            ;limpa os registradores 
     xor ebx, ebx
@@ -894,10 +861,10 @@ VerificaSeAcertouHeli proc                  ;verificacao se o missel entrou em c
     sub ebx, edx                            ;subtrai de ebx e armazena em edx
 
     mov eax, balaPos.y                      ;guarda em eax a posicao 'y' da bala
-    sub ecx, eax       
+    sub ecx, eax                            ;subtrai de eax e armazena em ecx
     
-                         ;subtrai de eax e armazena em ecx
-    
+                         
+    ;se a subtração das posições for admissível como uma colisão, exibimos a explosão e atualizamos a posiçãi do obstáculo atingido
     .if ecx <= 35 && ebx <= 35
     ;exibir explosao
     add pontuacao, 10
@@ -1179,14 +1146,14 @@ VerificaFuel endp
 VerificaSePerdeu proc 
     LOCAL aux:DWORD
     mov aux, 0
-
-    prepara:
-    xor edx, edx
+    
+    prepara:               ;inicio da lógica
+    xor edx, edx           ;limpa valor de todos os registradores
     xor ebx, ebx
     xor ecx, ecx
     xor eax, eax
 
-    .if aux == 0
+    .if aux == 0           ;verifica: se aux for igual a zero, então devemos verificar se o avião foi atingido pelo helicóptero 1
         mov edx, heliPos.x
         mov ebx, aviaoPos.x
         sub ebx, edx
@@ -1197,7 +1164,7 @@ VerificaSePerdeu proc
         inc aux
         jmp loopVerifica
 
-    .elseif aux == 1
+    .elseif aux == 1   ;verifica: se aux for igual a 1, então devemos verificar se o avião foi atingido pelo barco 1
         mov edx, barcoPos.x
         mov ebx, aviaoPos.x
         sub ebx, edx
@@ -1207,7 +1174,7 @@ VerificaSePerdeu proc
         sub ecx, eax
         inc aux
         jmp loopVerifica
-    .elseif aux == 2
+    .elseif aux == 2     ;verifica: se aux for igual a 2, então devemos verificar se o avião foi atingido pelo helicóptero 2
         mov edx, heliDoisPos.x
         mov ebx, aviaoPos.x
         sub ebx, edx
@@ -1217,7 +1184,7 @@ VerificaSePerdeu proc
         sub ecx, eax
         inc aux
         jmp loopVerifica
-    .elseif aux == 3
+    .elseif aux == 3           ;verifica: se aux for igual a 3, então devemos verificar se o avião foi atingido pelo barco 2
         mov edx, barcoDoisPos.x
         mov ebx, aviaoPos.x
         sub ebx, edx
@@ -1227,7 +1194,7 @@ VerificaSePerdeu proc
         sub ecx, eax
         inc aux
         jmp loopVerifica
-    .elseif aux == 4
+    .elseif aux == 4    ;verifica: se aux for igual a 4, então devemos verificar se o avião foi atingido pelo helicóptero da esquerda 2
         mov edx, heliEDoisPos.x
         mov ebx, aviaoPos.x
         sub ebx, edx
@@ -1237,7 +1204,7 @@ VerificaSePerdeu proc
         sub ecx, eax
         inc aux
         jmp loopVerifica
-    .elseif aux == 5
+    .elseif aux == 5  ;verifica: se aux for igual a 5, então devemos verificar se o avião foi atingido pelo helicóptero da esquerda 1
         mov edx, heliEPos.x
         mov ebx, aviaoPos.x
         sub ebx, edx
@@ -1247,7 +1214,7 @@ VerificaSePerdeu proc
         sub ecx, eax
         inc aux
         jmp loopVerifica
-    .elseif aux == 6
+    .elseif aux == 6         ;verifica: se aux for igual a 6, então devemos verificar se o avião foi atingido pelo barco da esquerda 1
         mov edx, barcoEPos.x
         mov ebx, aviaoPos.x
         sub ebx, edx
@@ -1257,7 +1224,7 @@ VerificaSePerdeu proc
         sub ecx, eax
         inc aux
         jmp loopVerifica
-    .elseif aux == 7
+    .elseif aux == 7        ;verifica: se aux for igual a 7, então devemos verificar se o avião foi atingido pelo barco da esquerda 2
         mov edx, barcoEDoisPos.x
         mov ebx, aviaoPos.x
         sub ebx, edx
@@ -1267,22 +1234,22 @@ VerificaSePerdeu proc
         sub ecx, eax
         inc aux
         jmp loopVerifica
-    .elseif aux == 8
-        ret
+    .elseif aux == 8  ;verifica: se aux for igual a 8, então já verificamos todos os elementos e saímos do procedimento
+        ret           ;comando que força saída imediata do procedimento 
     .endif
 
-    loopVerifica:
-        .if ecx <= 20 && ebx <= 20
+    loopVerifica:     ;loop que verifica se o avião e o elemento estão na mesma posição, se estiverem, devemos exibir uma explosão e avisar ao usuário que ele perdeu
+        .if ecx <= 20 && ebx <= 20 ;verifica se a subtração das coordenadas x e y estão dentro de um intervalo admissível como colisão
             xor ecx, ecx
             mov ecx, aviaoPos.x
-            mov explosaoPos.x, ecx
+            mov explosaoPos.x, ecx ;exibe a explosão no local da colisão
 
             xor edx, edx
             mov edx, aviaoPos.y
-            mov explosaoPos.y, edx
-            inc perdeu
+            mov explosaoPos.y, edx  ;exibe a explosão no local da colisão
+            inc perdeu              ;incrementa variável de controle lógico para que o usuário seja notificado que perdeu
         .endif
-        jmp prepara
+        jmp prepara                 ;volta para o "prepara", para ver se falta verificar algum obstáculo
 
     ret
 VerificaSePerdeu endp 
@@ -1376,16 +1343,6 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos d
     INVOKE  TransparentBlt,hDC,barcoEPos.x,barcoEPos.y,35,18,memDC,0,0,35,18,CREF_TRANSPARENT 
     INVOKE  TransparentBlt,hDC,barcoEDoisPos.x,barcoEDoisPos.y,35,18,memDC,0,0,35,18,CREF_TRANSPARENT 
 
-    ; ----------win
-    invoke SelectObject,memDC,hBmp15  ; seleciona o novo bitmap
-    mov hOld, eax     
-    INVOKE  TransparentBlt,hDC,winPos.x,winPos.y,850,650,memDC,0,0,850,650,CREF_TRANSPARENT 
-
-    ; ----------game over
-    invoke SelectObject,memDC,hBmp16  ; seleciona o novo bitmap
-    mov hOld, eax     
-    INVOKE  TransparentBlt,hDC,gameOverPos.x,gameOverPos.y,850,650,memDC,0,0,850,650,CREF_TRANSPARENT 
-    ;-------------------------------------------------------
     szText pont, "Pontuacao"
 
     ;invoke CreateFont,24,16,0,0,400,0,0,0,OEM_CHARSET,\ OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,\ DEFAULT_QUALITY,DEFAULT_PITCH or FF_SCRIPT,\ ADDR FontName   ;r
@@ -1398,15 +1355,26 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos d
     ;invoke SetTextSize, 18
     invoke TextOut,hDC,640,530,ADDR pont,10
  
-    mov aux, "0"                  ;18173  
+    mov aux, "0"                  ;converter
     invoke TextOut,hDC,640,555, addr aux, 4
+
+    ; ----------win
+    invoke SelectObject,memDC,hBmp15  ; seleciona o novo bitmap
+    mov hOld, eax     
+    INVOKE  TransparentBlt,hDC,winPos.x,winPos.y,850,650,memDC,0,0,850,650,CREF_TRANSPARENT 
+
+    ; ----------game over
+    invoke SelectObject,memDC,hBmp16  ; seleciona o novo bitmap
+    mov hOld, eax     
+    INVOKE  TransparentBlt,hDC,gameOverPos.x,gameOverPos.y,850,650,memDC,0,0,850,650,CREF_TRANSPARENT 
+    ;-------------------------------------------------------
 
 
     invoke SelectObject,hDC,hOld
     invoke DeleteDC,memDC
 
     return 0
-Paint_Proc endp
+Paint_Proc endp              ;término da definição do paint
 
 ; ########################################################################
 

@@ -1,5 +1,8 @@
 ; #########################################################################
-
+    ;Ana Clara Sampaio Pires   - 18201
+    ;Ariane Paula Barros       - 18173
+    ;Felipe Melchior de Britto - 18200  
+    
 ;     include files
 ;     ~~~~~~~~~~~~~
     include \MASM32\INCLUDE\windows.inc
