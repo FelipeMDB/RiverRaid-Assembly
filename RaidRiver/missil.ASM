@@ -1119,7 +1119,7 @@ VerificaFuel proc
     sub ecx, eax
  
     .if ecx <= 26 && ebx <= 26
-      sub tempo, 150
+      ;sub tempo, 150
       mov achou, 3
       
       ;exibir explosao
