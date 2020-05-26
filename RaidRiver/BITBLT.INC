@@ -121,7 +121,7 @@
     acelera   dd 0
     perdeu    dd 0
     count dd 0
-    sera  dd 0
+    evitaLoop  dd 0
     pontuacao dd 0
     acabouGasolina dd 0
     heliParaEsq   dd 0
@@ -147,8 +147,7 @@
     barcoPos 	  POINT <>
     fuelPos     POINT <>
     explosaoPos POINT <>
-    esqPos      POINT <>
-    dirPos      POINT <>
+    terraPos      POINT <>
     gasPos      POINT <>
     heliEPos 	  POINT <>
     heliEDoisPos 	  POINT <>

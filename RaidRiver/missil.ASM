@@ -347,7 +347,7 @@ WndProc proc hWin   :DWORD,
 		mov aviaoPos.y, 450                    
 		mov aviaoPos.x, 370  
 
-        mov sera, 0                 
+        mov evitaLoop, 0                 
 
         mov barcoPos.y, 80
 		mov barcoPos.x, 100
@@ -569,6 +569,7 @@ WndProc proc hWin   :DWORD,
         ; .endif    
 
     .elseif uMsg==WM_HELI
+        invoke VerificaSePerdeu
         invoke VerificaFuel              ;verifica se o jogador passou pela posição do combustível
         invoke VerificaSeAcertouHeli     ;verifica se o jogador passou pela posição do helicóptero 1
         invoke VerificaSeAcertouHeliDois ;verifica se o jogador passou pela posição do helicóptero 2
@@ -660,7 +661,7 @@ WndProc endp                ;término da definição do procedimento
 
 verifica proc hWin:DWORD,uMsg:DWORD,wParam:DWORD,lParam:DWORD ;Procedimento chamado quando o usuário perdeu, pergunta se ele quer jogar novamente ou sair
        
-        mov sera, 2                                                   ;necesário para não entrar em loop e exibir diversas vezes na execução repetida da chamada desse procedimento
+        mov evitaLoop, 2                                                   ;necesário para não entrar em loop e exibir diversas vezes na execução repetida da chamada desse procedimento
         .if perdeu > 0                                                ;verifica se foi atingido ou se sua gasolina acabou                                       ;verifica se perdeu porque foi atingido por um obstáculo
             mov aviaoPos.x,0
             mov gameOverPos.x,0
@@ -701,9 +702,9 @@ TopXY endp
 Abaixa proc ;Procedimento chamado a cada segundo, para atualizar a coordenada y de cada elemento da tela
             ;para criar a impressão que o avião está se movimentando para frente, quando na verdade são os outros
             ;elementos que estão "indo para baixo"
-    .if sera == 0      ;se o usuário não perdeu o jogo até agora
+    .if evitaLoop == 0      ;se o usuário não perdeu o jogo até agora
         .if perdeu > 0  || acabouGasolina > 0 ;verifica se acabou de perder
-        invoke verifica, NULL,NULL,NULL, NULL ;chamada do procedimento para interromper e avisar o jogador que perdeu
+            invoke verifica, NULL,NULL,NULL, NULL ;chamada do procedimento para interromper e avisar o jogador que perdeu
         .endif
     .endif
     .if tempo > 0     ;se o tempo de vida não acabou
@@ -1222,6 +1223,46 @@ VerificaSePerdeu proc
         inc aux
         jmp ok
     .elseif aux == 4
+        mov edx, heliEDoisPos.x
+        mov ebx, aviaoPos.x
+        sub ebx, edx
+
+        mov eax, aviaoPos.y
+        mov ecx, heliEDoisPos.y
+        sub ecx, eax
+        inc aux
+        jmp ok
+    .elseif aux == 5
+        mov edx, heliEPos.x
+        mov ebx, aviaoPos.x
+        sub ebx, edx
+
+        mov eax, aviaoPos.y
+        mov ecx, heliEPos.y
+        sub ecx, eax
+        inc aux
+        jmp ok
+    .elseif aux == 6
+        mov edx, barcoEPos.x
+        mov ebx, aviaoPos.x
+        sub ebx, edx
+
+        mov eax, aviaoPos.y
+        mov ecx, barcoEPos.y
+        sub ecx, eax
+        inc aux
+        jmp ok
+    .elseif aux == 7
+        mov edx, barcoEDoisPos.x
+        mov ebx, aviaoPos.x
+        sub ebx, edx
+
+        mov eax, aviaoPos.y
+        mov ecx, barcoEDoisPos.y
+        sub ecx, eax
+        inc aux
+        jmp ok
+    .elseif aux == 8
         ret
     .endif
 
@@ -1242,7 +1283,7 @@ VerificaSePerdeu proc
 VerificaSePerdeu endp 
 
 Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos da tela
-    LOCAL hfont:HFONT 
+    ;LOCAL hfont:HFONT 
     LOCAL hOld:DWORD
     LOCAL memDC :DWORD
     LOCAL aux:DWORD
@@ -1300,7 +1341,7 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos d
     ;----------terraDireita
     invoke SelectObject,memDC,hBmp10  ; seleciona o novo bitmap
     mov hOld, eax     
-    INVOKE  TransparentBlt,hDC,terraPos.x,0,160,800,memDC,0,terraPos.y,150,800,CREF_TRANSPARENT  
+    INVOKE  TransparentBlt,hDC,677,0,160,800,memDC,0,terraPos.y,150,800,CREF_TRANSPARENT  
 
     ; ----------placar
     invoke SelectObject,memDC,hBmp8  ; seleciona o novo bitmap
@@ -1357,7 +1398,7 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos d
     invoke TextOut,hDC,640,530,ADDR pont,10
  
     mov aux, 12                  ;18173  
-    invoke TextOut,hDC,640,535, addr aux, 4
+    invoke TextOut,hDC,640,555, addr aux, 4
 
 
     invoke SelectObject,hDC,hOld
