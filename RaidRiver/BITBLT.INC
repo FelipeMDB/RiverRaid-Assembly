@@ -125,7 +125,6 @@
     perdeu    dd 0
     count dd 0
     evitaLoop  dd 0
-    pontuacao dd 0
     acabouGasolina dd 0
     heliParaEsq   dd 0
     heli2ParaEsq   dd 0
@@ -162,6 +161,8 @@
     hThreadDown 	 dd 0
     ThreadDownID  dd 0
 
+    NomeFonte db 'courier new', 0
+
     hThreadBarco	  dd 0
     ThreadBarcoID  dd 0
 
@@ -170,13 +171,15 @@
 
     hThreadBala	  dd 0
     ThreadBalaID  dd 0
-    
+    pontInt db "p: ",0
     AppName  db "Raid River",0
     SuccessString db "Você perdeu!Deseja jogar novamente?",0
   	EventStop BOOL FALSE
+    pontuacao dw 0
 
 .data?         ;variáveis sem valor inicial
 hwnd HANDLE ? 
+    
 
 .const         ;constantes
 	IDM_EXIT equ 1     

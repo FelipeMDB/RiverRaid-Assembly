@@ -669,6 +669,7 @@ verifica proc hWin:DWORD,uMsg:DWORD,wParam:DWORD,lParam:DWORD ;Procedimento cham
                 invoke ExitProcess, 0                                 ;interrompe e execução do programa, fecha a janela
             .endif 
         .elseif
+            mov evitaLoop, 3                    ;variável de controle lógico para esse método não ser chamado mais de uma vez
             mov gameOverPos.x,0
             mov gameOverPos.y,0
             invoke PlaySound, ADDR Play3, NULL, SND_FILENAME or SND_ASYNC ; SOM DE DERROTA
@@ -708,7 +709,7 @@ Abaixa proc ;Procedimento chamado a cada segundo, para atualizar a coordenada y 
         dec tempo     ;decrementamos 1 segundo de seu tempo de vida
     .endif
 
-    .if tempo < 2          ;se acabou o tempo de vida
+    .if tempo < 2         ;se acabou o tempo de vida
         inc acabouGasolina  ;incrementamos a variável que representa que acabou a gasoline, e portanto o jogo acabou
     .elseif
 
@@ -745,7 +746,7 @@ Abaixa proc ;Procedimento chamado a cada segundo, para atualizar a coordenada y 
         .if acelera == 0
             ;dec acelera       ;decrementamos acelera, que funciona como um timer
             xor ebx, ebx      ;limpamos o registrador para usá-lo como auxiliar
-            mov ebx, 1        ;valor que será decrementado das posições y dos elementos, velocidade normal
+            mov ebx, 2        ;valor que será decrementado das posições y dos elementos, velocidade normal
         .elseif acelera <= 10 ;se o efeito do combustível estiver acabando
             dec acelera       ;decrementamos acelera, que funciona como um timer
             xor ebx, ebx      ;limpamos o registrador para usá-lo como auxiliar
@@ -1255,10 +1256,10 @@ VerificaSePerdeu proc
 VerificaSePerdeu endp 
 
 Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos da tela
-    ;LOCAL hfont:HFONT 
+    LOCAL hfont:HFONT 
     LOCAL hOld:DWORD
     LOCAL memDC :DWORD
-    LOCAL aux:DWORD
+    LOCAL aux :DWORD
   
     invoke CreateCompatibleDC,hDC
     mov memDC, eax
@@ -1345,21 +1346,23 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos d
 
     szText pont, "Pontuacao"
 
-    ;invoke CreateFont,24,16,0,0,400,0,0,0,OEM_CHARSET,\ OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,\ DEFAULT_QUALITY,DEFAULT_PITCH or FF_SCRIPT,\ ADDR FontName   ;r
-    ;invoke SelectObject, hDC, eax 
-    ;mov hfont,eax 
+    invoke  CreateFont, 24, 18, 1, 1, 400, 0, 0, 0,\
+                           OEM_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,\
+                           DEFAULT_QUALITY, DEFAULT_PITCH+FF_SCRIPT, addr NomeFonte
+    
+    invoke SelectObject, hDC, eax 
+    mov hfont,eax 
     RGB 200,200,50
     invoke SetTextColor,hDC,eax
     RGB 105,105,105 
     invoke SetBkColor,hDC,eax
-    ;invoke SetTextSize, 18
     invoke TextOut,hDC,640,530,ADDR pont,10
-    xor ecx, ecx
-    mov ecx, offset pontuacao
-    sub ecx, 48
-    mov aux, ecx                  ;converter
+
+    invoke dwtoa,hwnd,addr pontuacao ;18201
     
-    invoke TextOut,hDC,640,555, addr aux, 4
+    add aux, 20
+
+    invoke TextOut,hDC,640,555, addr pontuacao, sizeof pontuacao
 
     ; ----------win
     invoke SelectObject,memDC,hBmp15  ; seleciona o novo bitmap
