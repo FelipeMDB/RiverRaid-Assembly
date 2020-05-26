@@ -1354,8 +1354,11 @@ Paint_Proc proc hWin:DWORD, hDC:DWORD  ;método que desenha todos os elementos d
     invoke SetBkColor,hDC,eax
     ;invoke SetTextSize, 18
     invoke TextOut,hDC,640,530,ADDR pont,10
- 
-    mov aux, "0"                  ;converter
+    xor ecx, ecx
+    mov ecx, offset pontuacao
+    sub ecx, 48
+    mov aux, ecx                  ;converter
+    
     invoke TextOut,hDC,640,555, addr aux, 4
 
     ; ----------win
