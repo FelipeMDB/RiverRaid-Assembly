@@ -57,6 +57,7 @@
     FileName3       db "03game_over.wav",0                  ;som de derrota (nava explodiu)
     FileName4       db "04laser_shot.wav",0                 ;som do tiro da nave do jogador
     FileName5       db "05victory.wav",0                    ;som de vitoria, venceu a fase
+    FileName6       db "06aviao.wav",0                      ;som das turbinas do aviao
 
     Play0	  db "00explosion_8bits.wav",0		; Arquivo de Som
     Play1	  db "01explosion_8bits_versao2.wav",0		; Arquivo de Som
@@ -64,6 +65,7 @@
     Play3	  db "03game_over.wav",0		; Arquivo de Som
     Play4	  db "04laser_shot.wav",0		; Arquivo de Som
     Play5	  db "05victory.wav",0		; Arquivo de Som
+    Play6	  db "06aviao.wav",0		; Arquivo de Som
     somDeTiro db 0                      ;variavel para contagem do tiro (som desencadeado apenas no momento de uso do laser/tiro)
 
     ; - MCI_OPEN_PARMS Structure ( API=mciSendCommand ) -
@@ -90,6 +92,8 @@
 
 start:                     ;método para iniciar o programa, sempre é o primeiro a ser chamado automaticamente por padrão
                            ;cria todos os bitmaps que serão usados e chama o procedimento que cria a janela
+    
+    ;;invoke PlaySound, ADDR Play6, NULL, SND_ASYNC or SND_LOOP or SND_NOSTOP ; SOM DO AVIAO
     invoke GetModuleHandle, NULL
     mov hInstance, eax 
     
@@ -467,7 +471,7 @@ WndProc proc hWin   :DWORD,
     .elseif wParam == VK_UP ;se o usuário pressionou a seta para cima, ele atirou uma bala
         inc somDeTiro       ;incrementa variável controle lógico de tiros feitos
         .if somDeTiro == 1  ;verificação para tocarmos o som do tiro
-            invoke PlaySound, ADDR Play4, NULL, SND_FILENAME or SND_ASYNC ; SOM DA BALA
+            invoke PlaySound, ADDR Play4, NULL, SND_FILENAME or SND_ASYNC  ; ; SOM DA BALA
         .endif
         mov ecx, aviaoPos.x
         add ecx, 13
@@ -661,8 +665,8 @@ verifica proc hWin:DWORD,uMsg:DWORD,wParam:DWORD,lParam:DWORD ;Procedimento cham
             mov gameOverPos.x,0                  ;posicionamos a imagem Game Over de modo a cobrir toda a janela
             mov gameOverPos.y,0
             mov evitaLoop, 3                    ;variável de controle lógico para esse método não ser chamado mais de uma vez
-            invoke PlaySound, ADDR Play2, NULL, SND_FILENAME or SND_ASYNC ; SOM DE EXPLOSAO DA NAVE
-            invoke PlaySound, ADDR Play3, NULL, SND_FILENAME or SND_ASYNC ; SOM DE DERROTA
+            invoke PlaySound, ADDR Play2, NULL, SND_FILENAME or SND_ASYNC  ; ; SOM DE EXPLOSAO DA NAVE
+            invoke PlaySound, ADDR Play3, NULL, SND_FILENAME or SND_ASYNC  ; ; SOM DE DERROTA
             szText msg,"Voce foi atingido!"                           ;cria a variavel contendo o texto que será a mensagem
             invoke MessageBox,hWin,ADDR msg,ADDR szDisplayName,MB_OK  ;cria a message box, do tipo que notifica o usuário e espera sua confirmação, com texto criado acima
             .if eax == IDOK            
@@ -672,7 +676,7 @@ verifica proc hWin:DWORD,uMsg:DWORD,wParam:DWORD,lParam:DWORD ;Procedimento cham
             mov evitaLoop, 3                    ;variável de controle lógico para esse método não ser chamado mais de uma vez
             mov gameOverPos.x,0
             mov gameOverPos.y,0
-            invoke PlaySound, ADDR Play3, NULL, SND_FILENAME or SND_ASYNC ; SOM DE DERROTA
+            invoke PlaySound, ADDR Play3, NULL, SND_FILENAME or SND_ASYNC  ; ; SOM DE DERROTA
             szText msgG,"Sua gasolina acabou, voce perdeu!"  ;cria a variavel contendo o texto que será a mensagem
             invoke MessageBox,hWin,ADDR msgG,ADDR szDisplayName,MB_OK  ;cria a message box, do tipo que notifica o usuário e espera sua confirmação, com texto criado acima
             .if eax == IDOK               
@@ -901,7 +905,7 @@ VerificaSeAcertouHeli proc                  ;verificacao se o missel entrou em c
     .endif
 
     mov balaPos.x, -20                      ;'apaga' a bala pois ela acertou o alvo
-    invoke PlaySound, ADDR Play1, NULL, SND_FILENAME or SND_ASYNC ; SOM DE EXPLOSAO DO HELICOPTERO
+    invoke PlaySound, ADDR Play1, NULL, SND_FILENAME or SND_ASYNC  ; ; SOM DE EXPLOSAO DO HELICOPTERO
     .endif
     ret
 VerificaSeAcertouHeli endp  
@@ -954,7 +958,7 @@ VerificaSeAcertouHeliDois proc                  ;verificacao se o missel entrou 
     .endif
 
     mov balaPos.x, -20                      ;'apaga' a bala pois ela acertou o alvo
-    invoke PlaySound, ADDR Play1, NULL, SND_FILENAME or SND_ASYNC ; SOM DE EXPLOSAO DO HELICOPTERO
+    invoke PlaySound, ADDR Play1, NULL, SND_FILENAME or SND_ASYNC  ; ; SOM DE EXPLOSAO DO HELICOPTERO
     .endif
     ret
 VerificaSeAcertouHeliDois endp 
@@ -1006,7 +1010,7 @@ VerificaSeAcertouBarco proc
       .endif
 
       mov balaPos.x, -20                      ;'apaga' a bala pois ela acertou o alvo
-      invoke PlaySound, ADDR Play1, NULL, SND_FILENAME or SND_ASYNC ; SOM DE EXPLOSAO DO BARCO
+      invoke PlaySound, ADDR Play1, NULL, SND_FILENAME or SND_ASYNC  ;; SOM DE EXPLOSAO DO BARCO
           
     .endif
 
@@ -1062,7 +1066,7 @@ VerificaSeAcertouBarcoDois proc
             mov barcoEDoisPos.y,0
         .endif
         mov balaPos.x, -20                      ;'apaga' a bala pois ela acertou o alvo
-        invoke PlaySound, ADDR Play1, NULL, SND_FILENAME or SND_ASYNC ; SOM DE EXPLOSAO DO HELICOPTERO
+        invoke PlaySound, ADDR Play1, NULL, SND_FILENAME or SND_ASYNC  ;; SOM DE EXPLOSAO DO HELICOPTERO
           
     .endif
 
@@ -1138,7 +1142,7 @@ VerificaFuel proc
       .endif
         mov fuelPos.y, 0    
         
-      invoke PlaySound, ADDR Play1, NULL, SND_FILENAME or SND_ASYNC ; SOM DE EXPLOSAO DO FUEL  
+      invoke PlaySound, ADDR Play1, NULL, SND_FILENAME or SND_ASYNC  ;; SOM DE EXPLOSAO DO FUEL  
     .endif
 
     ret
@@ -1458,5 +1462,7 @@ ThreadDownProc PROC USES ecx Param:DWORD     ;Thread executada para desenhar o a
         
     ret
 ThreadDownProc ENDP
+
+
 
 end start                                             ;finaliza o codigo  
